@@ -12,10 +12,18 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import MapView, { Marker, Region } from 'react-native-maps'
-
+import type { default as MapViewType, Region } from 'react-native-maps'
 import { RootStackParamList } from '../../App'
 import { useRoomStore, Candidate, Member } from '../stores/roomStore'
+
+// 只在非網頁版載入 react-native-maps，避免網頁版崩潰
+const MapView = (Platform.OS !== 'web'
+  ? require('react-native-maps').default
+  : () => null) as typeof MapViewType
+
+const Marker = (Platform.OS !== 'web'
+  ? require('react-native-maps').Marker
+  : () => null) as React.ComponentType<any>
 
 type MidpointModeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MidpointMode'>
 
@@ -71,7 +79,7 @@ export default function MidpointModeScreen() {
   const navigation = useNavigation<MidpointModeNavigationProp>()
   const { members, candidates, myName, actions } = useRoomStore()
   const isWeb = Platform.OS === 'web'
-  const mapRef = useRef<MapView>(null)
+  const mapRef = useRef<MapViewType>(null)
 
   // ── 計算中點 ──────────────────────────────────────────────
 
