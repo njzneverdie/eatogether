@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -69,6 +70,7 @@ interface RestaurantAnalysis {
 export default function MidpointModeScreen() {
   const navigation = useNavigation<MidpointModeNavigationProp>()
   const { members, candidates, myName, actions } = useRoomStore()
+  const isWeb = Platform.OS === 'web'
   const mapRef = useRef<MapView>(null)
 
   // ── 計算中點 ──────────────────────────────────────────────
@@ -95,10 +97,10 @@ export default function MidpointModeScreen() {
       .sort((a, b) => a.timeDiff - b.timeDiff)
   }, [candidates, members])
 
-  // ── 移動地圖到中點 ────────────────────────────────────────
+    // ── 移動地圖到中點（僅手機版）────────────────────────────────────────
 
   useEffect(() => {
-    if (!midpoint) return
+    if (isWeb || !midpoint) return
     const region: Region = {
       latitude: midpoint.lat,
       longitude: midpoint.lng,
@@ -106,7 +108,7 @@ export default function MidpointModeScreen() {
       longitudeDelta: 0.03,
     }
     setTimeout(() => mapRef.current?.animateToRegion(region, 800), 300)
-  }, [midpoint])
+  }, [midpoint, isWeb])
 
   // ── 確認選擇餐廳 ──────────────────────────────────────────
 
@@ -157,49 +159,56 @@ export default function MidpointModeScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      {/* ── 地圖 ── */}
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={initialRegion}
-        showsUserLocation={false}
-      >
-        {/* 自己的位置（橘色）*/}
-        {members
-          .filter((m) => m.name === myName && (m.lat !== 0 || m.lng !== 0))
-          .map((m) => (
-            <Marker
-              key={`self-${m.id}`}
-              coordinate={{ latitude: m.lat, longitude: m.lng }}
-              title={`${m.name}（我）`}
-              pinColor={PRIMARY}
-            />
-          ))}
+            {/* ── 地圖 ── */}
+      {isWeb ? (
+        <View style={styles.webMapPlaceholder}>
+          <Text style={styles.webMapIcon}>🗺️</Text>
+          <Text style={styles.webMapText}>地圖功能僅支援手機版</Text>
+        </View>
+      ) : (
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={initialRegion}
+          showsUserLocation={false}
+        >
+          {/* 自己的位置（橘色）*/}
+          {members
+            .filter((m) => m.name === myName && (m.lat !== 0 || m.lng !== 0))
+            .map((m) => (
+              <Marker
+                key={`self-${m.id}`}
+                coordinate={{ latitude: m.lat, longitude: m.lng }}
+                title={`${m.name}（我）`}
+                pinColor={PRIMARY}
+              />
+            ))}
 
-        {/* 其他成員（藍色）*/}
-        {members
-          .filter((m) => m.name !== myName && (m.lat !== 0 || m.lng !== 0))
-          .map((m) => (
-            <Marker
-              key={`member-${m.id}`}
-              coordinate={{ latitude: m.lat, longitude: m.lng }}
-              title={m.name}
-              pinColor="#5352ED"
-            />
-          ))}
+          {/* 其他成員（藍色）*/}
+          {members
+            .filter((m) => m.name !== myName && (m.lat !== 0 || m.lng !== 0))
+            .map((m) => (
+              <Marker
+                key={`member-${m.id}`}
+                coordinate={{ latitude: m.lat, longitude: m.lng }}
+                title={m.name}
+                pinColor="#5352ED"
+              />
+            ))}
 
-        {/* 幾何中點（星星）*/}
-        {midpoint && (
-          <Marker
-            coordinate={{ latitude: midpoint.lat, longitude: midpoint.lng }}
-            title="幾何中點"
-          >
-            <View style={styles.midpointMarker}>
-              <Text style={styles.midpointMarkerText}>⭐</Text>
-            </View>
-          </Marker>
-        )}
-      </MapView>
+          {/* 幾何中點（星星）*/}
+          {midpoint && (
+            <Marker
+              coordinate={{ latitude: midpoint.lat, longitude: midpoint.lng }}
+              title="幾何中點"
+            >
+              <View style={styles.midpointMarker}>
+                <Text style={styles.midpointMarkerText}>⭐</Text>
+              </View>
+            </Marker>
+          )}
+        </MapView>
+      )}
 
       {/* ── 中點說明 ── */}
       {midpoint && (
@@ -328,10 +337,30 @@ const styles = StyleSheet.create({
     color: '#222',
   },
 
-  // 地圖
+    // 地圖
   map: {
     width: '100%',
     height: MAP_HEIGHT,
+  },
+
+  // Web 版地圖佔位區塊
+  webMapPlaceholder: {
+    width: '100%',
+    height: MAP_HEIGHT,
+    backgroundColor: '#F0F4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#DDE3F0',
+  },
+  webMapIcon: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  webMapText: {
+    fontSize: 15,
+    color: '#5352ED',
+    fontWeight: '600',
   },
 
   // 中點 Marker
