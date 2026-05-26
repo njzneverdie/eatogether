@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>揪吃 — 轉盤選餐廳</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0A0A0B;--surface:#151517;--surfaceUp:#1E1E22;--card:#18181C;
+  --accent:#FF6B35;--accentSoft:rgba(255,107,53,.12);
+  --green:#22C55E;--greenSoft:rgba(34,197,94,.12);
+  --red:#EF4444;--redSoft:rgba(239,68,68,.12);
+  --blue:#3B82F6;--blueSoft:rgba(59,130,246,.12);
+  --gold:#F59E0B;--goldSoft:rgba(245,158,11,.12);
+  --pink:#EC4899;--purple:#8B5CF6;
+  --text:#F5F5F5;--textSec:#999;--textTer:#555;
+  --border:#252528;--radius:16px;--radiusSm:12px;
+  --font:'Noto Sans TC','SF Pro Display',-apple-system,sans-serif;
+}
+body{background:#050505;font-family:var(--font);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:12px}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:46px;border:2.5px solid var(--border);overflow:hidden;position:relative;box-shadow:0 30px 100px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.04)}
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 30px 4px;color:var(--text);font-size:12px;font-weight:600}
+.notch{width:126px;height:34px;background:#000;border-radius:18px;margin:0 auto}
+.screen{height:calc(100% - 52px);overflow:hidden;position:relative}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .3s,transform .3s;overflow-y:auto}
+.view.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}
+
+.key-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;height:100%}
+.key-screen h1{font-size:36px;font-weight:900;color:var(--text);margin-bottom:4px}
+.key-screen h1 span{color:var(--accent)}
+.key-screen p{color:var(--textSec);font-size:13px;margin-bottom:28px;line-height:1.5}
+.start-btn{width:100%;padding:16px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--accent),#FF8F65);color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);margin-top:14px;box-shadow:0 8px 32px rgba(255,107,53,.3);transition:transform .15s}
+.start-btn:hover{transform:scale(1.02)}
+.demo-btn{background:transparent;border:1px dashed var(--border);color:var(--textSec);width:100%;padding:12px;border-radius:50px;font-size:12px;cursor:pointer;font-family:var(--font);margin-top:10px}
+
+.wheel-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 24px}
+.wheel-header{text-align:center;margin-bottom:14px}
+.wheel-header h1{font-size:26px;font-weight:900;color:var(--text)}
+.wheel-header h1 span{color:var(--accent)}
+.wheel-header p{color:var(--textSec);font-size:12px;margin-top:4px}
+.wheel-container{position:relative;margin-bottom:14px}
+.wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:10;width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:22px solid var(--accent);filter:drop-shadow(0 2px 10px rgba(255,107,53,.5))}
+#wheelCanvas{cursor:pointer}
+.spin-btn{width:100%;max-width:280px;padding:16px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--accent),#FF8F65);color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);box-shadow:0 8px 32px rgba(255,107,53,.3);transition:all .2s}
+.spin-btn:disabled{background:var(--surfaceUp);box-shadow:none;cursor:default}
+.spin-btn:not(:disabled):hover{transform:scale(1.02)}
+
+.result-area{width:100%;animation:fadeUp .4s ease}
+.result-box{border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:14px;border-width:1.5px;border-style:solid}
+.result-box .emoji{font-size:38px}
+.result-box h2{color:var(--text);font-size:20px;font-weight:800;margin:6px 0 2px}
+.result-box .sub{color:var(--textSec);font-size:12px}
+.mode-label{color:var(--textSec);font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;margin-bottom:10px}
+.mode-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radiusSm);cursor:pointer;text-align:left;transition:all .15s;margin-bottom:8px}
+.mode-btn:hover{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.03)}
+.mode-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.mode-btn h3{color:var(--text);font-size:14px;font-weight:700;margin-bottom:2px}
+.mode-btn p{color:var(--textSec);font-size:11px}
+.mode-arrow{color:var(--textTer);font-size:18px}
+.respin-btn{width:100%;padding:12px;border-radius:var(--radiusSm);background:transparent;border:1px dashed var(--border);color:var(--textSec);font-size:12px;cursor:pointer;font-family:var(--font);margin-top:4px}
+
+.mode-header{display:flex;align-items:center;gap:10px;padding:10px 20px 8px;flex-shrink:0}
+.back-btn{background:var(--surfaceUp);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);font-size:16px;flex-shrink:0}
+.mode-header h2{color:var(--text);font-size:16px;font-weight:800;flex:1}
+.avatars{display:flex;align-items:center}
+.avatars span{font-size:17px;margin-left:-5px}
+.avatars .more{font-size:10px;color:var(--textSec);margin-left:5px}
+
+.map-container{height:200px;border-radius:var(--radiusSm);overflow:hidden;margin:0 20px 10px;border:1px solid var(--border);flex-shrink:0;position:relative}
+.map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--card);color:var(--textSec);font-size:12px}
+
+.swipe-body{flex:1;padding:0 20px;display:flex;flex-direction:column;min-height:0}
+.progress-bar{display:flex;gap:3px;margin-bottom:10px;flex-shrink:0}
+.progress-dot{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
+.progress-dot.done{background:var(--accent)}
+.progress-dot.current{background:rgba(255,107,53,.5)}
+.card-area{flex:1;position:relative;min-height:0;touch-action:none}
+.restaurant-card{position:absolute;inset:0;background:var(--card);border-radius:20px;border:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:transform .28s ease,opacity .28s ease;cursor:grab}
+.card-visual{height:140px;display:flex;align-items:center;justify-content:center;position:relative}
+.card-visual .emoji{font-size:60px}
+.match-badge{position:absolute;top:10px;right:10px;background:var(--accentSoft);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--accent)}
+.card-photo{width:100%;height:100%;object-fit:cover}
+.card-info{padding:12px 16px;flex:1;overflow-y:auto}
+.card-info h3{color:var(--text);font-size:16px;font-weight:800}
+.card-info .sub{color:var(--textSec);font-size:11px;margin-top:3px}
+.card-info .addr{color:var(--textTer);font-size:10px;margin-top:4px;line-height:1.3}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:10px}
+.mini-stat{background:var(--surface);border-radius:8px;padding:6px 4px;text-align:center}
+.mini-stat .label{color:var(--textTer);font-size:9px}
+.mini-stat .val{color:var(--text);font-size:11px;font-weight:600;margin-top:2px}
+.swipe-label{position:absolute;top:14px;z-index:10;padding:5px 14px;border-radius:8px;font-size:16px;font-weight:900}
+.swipe-label.like{left:14px;background:var(--greenSoft);border:2px solid var(--green);color:var(--green);transform:rotate(-12deg)}
+.swipe-label.nope{right:14px;background:var(--redSoft);border:2px solid var(--red);color:var(--red);transform:rotate(12deg)}
+.action-buttons{display:flex;justify-content:center;gap:16px;padding:10px 0 16px;flex-shrink:0}
+.round-btn{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border-width:2px;border-style:solid;transition:transform .15s,box-shadow .15s}
+.round-btn:hover{transform:scale(1.12)}
+
+.vote-body{flex:1;padding:0 20px;overflow-y:auto;padding-bottom:80px}
+.room-info{background:var(--card);border-radius:var(--radiusSm);padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border)}
+.room-info h3{color:var(--text);font-size:13px;font-weight:700}
+.room-info .code{color:var(--textTer);font-size:10px;margin-top:2px}
+.room-info .code b{color:var(--accent)}
+.vote-status{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600}
+.vote-option{width:100%;display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radiusSm);margin-bottom:8px;cursor:pointer;text-align:left;transition:all .15s;border-width:1.5px;border-style:solid}
+.vote-option .check{width:20px;height:20px;border-radius:6px;border:2px solid var(--textTer);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;transition:all .15s;flex-shrink:0}
+.vote-option.selected .check{border-color:var(--accent);background:var(--accent)}
+.vote-option .emoji{font-size:26px;flex-shrink:0}
+.vote-option h3{color:var(--text);font-size:13px;font-weight:700}
+.vote-option .sub{color:var(--textSec);font-size:11px;margin-top:2px}
+.vote-option .rating{color:var(--gold);font-size:12px;font-weight:700;flex-shrink:0}
+.vote-submit{position:absolute;bottom:0;left:0;right:0;padding:12px 20px 20px;background:linear-gradient(transparent,var(--bg) 30%)}
+.vote-submit button{width:100%;padding:14px;border-radius:50px;border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s}
+.result-bar{position:relative;overflow:hidden;border-radius:var(--radiusSm);padding:14px;margin-bottom:8px}
+.result-fill{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radiusSm);transition:width .8s ease}
+.result-content{position:relative;display:flex;align-items:center;gap:10px}
+.result-pct{font-size:15px;font-weight:800;flex-shrink:0}
+.winner-box{border-radius:var(--radiusSm);padding:14px;text-align:center;margin-top:4px}
+
+.ai-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20px}
+.ai-loader{text-align:center}
+.ai-avatar{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;animation:pulse 1.5s ease infinite}
+.ai-steps{display:flex;flex-direction:column;gap:8px;margin-top:20px;width:240px}
+.ai-step{display:flex;align-items:center;gap:8px}
+.ai-dot{width:6px;height:6px;border-radius:3px;flex-shrink:0}
+.ai-result{width:100%;animation:fadeUp .5s ease}
+.ai-pick-card{border-radius:20px;padding:24px;text-align:center;border-width:2px;border-style:solid}
+.ai-pick-card .emoji{font-size:50px}
+.ai-pick-card h2{color:var(--text);font-size:20px;font-weight:900;margin:8px 0 4px}
+.ai-pick-card .sub{color:var(--textSec);font-size:13px}
+.ai-stats{display:flex;justify-content:center;gap:20px;margin-top:14px}
+.ai-stat{text-align:center}
+.ai-stat .num{font-size:18px;font-weight:800}
+.ai-stat .label{font-size:10px;color:var(--textTer);margin-top:2px}
+.ai-reason{background:var(--card);border-radius:var(--radiusSm);padding:14px;margin-top:12px;border:1px solid var(--border)}
+.ai-reason h4{color:var(--gold);font-size:11px;font-weight:700;margin-bottom:6px}
+.ai-reason p{color:var(--textSec);font-size:12px;line-height:1.6}
+.ai-actions{display:flex;gap:8px;margin-top:14px;width:100%}
+.ai-actions button{flex:1;padding:12px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)}
+
+.done-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 24px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:420px){.phone{width:100%;height:100vh;border-radius:0;border:none}}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="notch"></div>
+    <span>🔋</span>
+  </div>
+  <div class="screen" id="screen"></div>
+</div>
+
+<script>
+// ─── CATEGORIES ───
+const CATEGORIES = [
+  { id:"japanese", label:"日式", emoji:"🍣", color:"#FF6B35", query:"japanese restaurant" },
+  { id:"chinese",  label:"中式", emoji:"🥟", color:"#EF4444", query:"chinese restaurant" },
+  { id:"korean",   label:"韓式", emoji:"🥓", color:"#3B82F6", query:"korean restaurant" },
+  { id:"thai",     label:"泰式", emoji:"🍜", color:"#22C55E", query:"thai restaurant" },
+  { id:"italian",  label:"義式", emoji:"🍝", color:"#F59E0B", query:"italian restaurant" },
+  { id:"hotpot",   label:"火鍋", emoji:"🫕", color:"#EC4899", query:"hotpot restaurant" },
+  { id:"american", label:"美式", emoji:"🍔", color:"#8B5CF6", query:"american restaurant" },
+  { id:"dessert",  label:"甜點", emoji:"🍰", color:"#F472B6", query:"dessert cafe bakery" },
+];
+
+// ─── STATE ───
+let mapsApiKey = "";
+let userLat = 22.6273, userLng = 120.3014;
+let placesService = null;
+let currentCategory = null;
+let currentRestaurants = [];
+let swipeIndex = 0;
+let swipeLiked = [];
+let voteSelections = {};
+let markers = [];
+
+// Room state
+let db = null;
+let currentRoomCode = null;
+let isHost = false;
+let currentUserId = null;
+let roomMembers = {};
+let roomListeners = [];
+
+// ─── HELPERS ───
+function $(sel){ return document.querySelector(sel); }
+function $$(sel){ return document.querySelectorAll(sel); }
+
+// ─── FIREBASE INIT ───
+function initFirebase(){
+  try {
+    const cfg = {
+      apiKey:'AIzaSyCCEWkvtyE5xH-fnncK06X7hecPQ0LccN4',
+      authDomain:'eatogether-2c0bb.firebaseapp.com',
+      projectId:'eatogether-2c0bb',
+      storageBucket:'eatogether-2c0bb.firebasestorage.app',
+      messagingSenderId:'426368076845',
+      appId:'1:426368076845:web:8c9d3049cbbe84fabb7ca4',
+    };
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    db = firebase.firestore();
+    let uid = sessionStorage.getItem('fdc_uid');
+    if(!uid){ uid='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); sessionStorage.setItem('fdc_uid',uid); }
+    currentUserId = uid;
+  } catch(e){ console.warn('Firebase unavailable:',e); db=null; }
+}
+
+function generateRoomCode(){
+  const C='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const r=()=>C[Math.floor(Math.random()*C.length)];
+  return r()+r()+r()+r()+'-'+r()+r()+r()+r();
+}
+
+function detachRoomListeners(){ roomListeners.forEach(u=>u()); roomListeners=[]; }
+
+// ─── CREATE ROOM ───
+async function createRoom(mode){
+  if(!db){ mode==='swipe'?renderSwipeMode():renderVoteMode(); return; }
+  const code = generateRoomCode();
+  currentRoomCode = code;
+  isHost = true;
+  try {
+    await db.collection('rooms').doc(code).set({
+      code, category:currentCategory, restaurants:currentRestaurants,
+      mode, hostId:currentUserId, status:'waiting',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await db.collection('rooms').doc(code).collection('members').doc(currentUserId).set({
+      nickname:'房主', isHost:true,
+      joinedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    renderWaitingRoom(code, mode);
+  } catch(e){
+    console.error('建立房間失敗:',e);
+    currentRoomCode=null; isHost=false;
+    mode==='swipe'?renderSwipeMode():renderVoteMode();
+  }
+}
+
+// ─── JOIN ROOM VIEW ───
+function renderJoinRoomView(){
+  $('#screen').innerHTML = `
+    <div class="view" id="joinView" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px">
+      <button class="back-btn" onclick="renderWheelScreen()" style="align-self:flex-start;margin-bottom:28px">‹</button>
+      <span style="font-size:44px;margin-bottom:10px">🚪</span>
+      <h2 style="color:var(--text);font-size:22px;font-weight:900;margin-bottom:6px">加入房間</h2>
+      <p style="color:var(--textSec);font-size:12px;margin-bottom:24px;text-align:center">輸入朋友分享的 8 碼房號</p>
+      <input id="joinCodeInput" type="text" placeholder="XXXX-XXXX" maxlength="9"
+        style="width:100%;padding:16px;border-radius:var(--radiusSm);background:var(--card);border:1.5px solid var(--border);color:var(--text);font-size:22px;font-family:var(--font);text-align:center;letter-spacing:3px;font-weight:700;outline:none;text-transform:uppercase;transition:border-color .2s"
+        oninput="this.value=this.value.toUpperCase()"
+        onfocus="this.style.borderColor='var(--blue)'"
+        onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')tryJoinRoom($('#joinCodeInput').value)"
+      >
+      <div id="joinError" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div>
+      <button id="joinSubmitBtn" onclick="tryJoinRoom($('#joinCodeInput').value)"
+        style="width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--blue),#60A5FA);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);margin-top:10px;box-shadow:0 6px 24px rgba(59,130,246,.3)">
+        加入
+      </button>
+    </div>
+  `;
+  setTimeout(()=>{ const el=$('#joinCodeInput'); if(el) el.focus(); },100);
+}
+
+// ─── TRY JOIN ───
+async function tryJoinRoom(raw){
+  if(!db){ showJoinError('連線失敗，請重試'); return; }
+  const code = (raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const formatted = code.length>=8 ? code.slice(0,4)+'-'+code.slice(4,8) : raw.toUpperCase().trim();
+  if(formatted.replace('-','').length < 8){ showJoinError('請輸入完整的 8 碼房號'); return; }
+  const btn=$('#joinSubmitBtn');
+  if(btn){ btn.disabled=true; btn.textContent='加入中…'; }
+  try {
+    const snap = await db.collection('rooms').doc(formatted).get();
+    if(!snap.exists){ showJoinError('找不到房間「'+formatted+'」'); if(btn){btn.disabled=false;btn.textContent='加入';} return; }
+    const room = snap.data();
+    if(room.status==='done'){ showJoinError('此房間已結束'); if(btn){btn.disabled=false;btn.textContent='加入';} return; }
+    currentCategory = room.category;
+    currentRestaurants = room.restaurants;
+    currentRoomCode = formatted;
+    isHost = false;
+    const mSnap = await db.collection('rooms').doc(formatted).collection('members').get();
+    const idx = mSnap.size + 1;
+    await db.collection('rooms').doc(formatted).collection('members').doc(currentUserId).set({
+      nickname:'朋友'+idx, isHost:false,
+      joinedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    renderWaitingRoom(formatted, room.mode);
+  } catch(e){
+    console.error(e); showJoinError('加入失敗，請重試');
+    if(btn){ btn.disabled=false; btn.textContent='加入'; }
+  }
+}
+
+function showJoinError(msg){
+  const el=$('#joinError'); if(el) el.textContent=msg;
+}
+
+// ─── WAITING ROOM ───
+function renderWaitingRoom(code, mode){
+  detachRoomListeners();
+  const modeLabel = mode==='swipe'?'滑卡模式':'投票模式';
+  const modeEmoji = mode==='swipe'?'🔥':'🗳️';
+  $('#screen').innerHTML = `
+    <div class="view" id="waitingView" style="overflow-y:auto">
+      <div class="mode-header">
+        <button class="back-btn" onclick="leaveRoom()">‹</button>
+        <h2>${modeEmoji} ${modeLabel}</h2>
+        <span style="font-size:10px;color:var(--textSec)">等待中</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:16px 24px 20px">
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;text-align:center;margin-bottom:14px">
+          <p style="color:var(--textTer);font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px">房間號碼</p>
+          <div style="font-size:34px;font-weight:900;color:var(--text);letter-spacing:4px;margin-bottom:10px">${code}</div>
+          <button id="copyBtn" onclick="copyCode('${code}')"
+            style="background:var(--accentSoft);border:1px solid rgba(255,107,53,.3);border-radius:20px;padding:7px 18px;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">
+            複製房號
+          </button>
+          <p style="color:var(--textTer);font-size:11px;margin-top:10px">傳給朋友，請他們輸入這組號碼</p>
+        </div>
+
+        <div style="width:100%;background:var(--card);border-radius:var(--radiusSm);border:1px solid var(--border);padding:14px;margin-bottom:14px">
+          <p style="color:var(--textSec);font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:10px">已加入成員</p>
+          <div id="memberList" style="display:flex;flex-direction:column;gap:8px">
+            <p style="color:var(--textTer);font-size:12px">載入中…</p>
+          </div>
+        </div>
+
+        <div id="waitingAction" style="width:100%"></div>
+      </div>
+    </div>
+  `;
+
+  const unsub = db.collection('rooms').doc(code).collection('members')
+    .onSnapshot(snap=>{
+      roomMembers={};
+      snap.forEach(doc=>{ roomMembers[doc.id]=doc.data(); });
+      renderMemberList();
+      renderWaitingAction(code, mode);
+    });
+  roomListeners.push(unsub);
+
+  if(!isHost){
+    const rUnsub = db.collection('rooms').doc(code).onSnapshot(snap=>{
+      if(!snap.exists) return;
+      if(snap.data().status==='active'){
+        detachRoomListeners();
+        mode==='swipe'?renderSwipeMode():renderVoteMode();
+      }
+    });
+    roomListeners.push(rUnsub);
+  }
+}
+
+function renderMemberList(){
+  const el=$('#memberList'); if(!el) return;
+  const entries=Object.entries(roomMembers);
+  if(!entries.length){ el.innerHTML='<p style="color:var(--textTer);font-size:12px">載入中…</p>'; return; }
+  el.innerHTML=entries.map(([uid,m])=>`
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">${m.isHost?'👑':'😊'}</span>
+      <span style="color:var(--text);font-size:13px;font-weight:600">${m.nickname}</span>
+      ${uid===currentUserId?'<span style="color:var(--accent);font-size:10px;background:var(--accentSoft);padding:2px 8px;border-radius:8px">你</span>':''}
+    </div>
+  `).join('');
+}
+
+function renderWaitingAction(code, mode){
+  const el=$('#waitingAction'); if(!el) return;
+  const count=Object.keys(roomMembers).length;
+  if(isHost){
+    el.innerHTML=`
+      <button onclick="startRoom('${code}','${mode}')"
+        style="width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--accent),#FF8F65);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);box-shadow:0 6px 24px rgba(255,107,53,.3)">
+        開始 · ${count} 人加入
+      </button>
+      <p style="color:var(--textTer);font-size:11px;text-align:center;margin-top:8px">等人數夠了再開始 —— 或者直接開始</p>
+    `;
+  } else {
+    el.innerHTML=`<p style="color:var(--textSec);font-size:13px;text-align:center;padding:4px 0">等待房主開始…（${count} 人已加入）</p>`;
+  }
+}
+
+async function startRoom(code, mode){
+  if(!isHost||!db) return;
+  const btn=event.target;
+  btn.disabled=true; btn.textContent='開始中…';
+  await db.collection('rooms').doc(code).update({status:'active'});
+  detachRoomListeners();
+  mode==='swipe'?renderSwipeMode():renderVoteMode();
+}
+
+function copyCode(code){
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=$('#copyBtn'); if(!btn) return;
+    btn.textContent='✓ 已複製';
+    btn.style.background='var(--greenSoft)';
+    btn.style.borderColor='rgba(34,197,94,.3)';
+    btn.style.color='var(--green)';
+    setTimeout(()=>{
+      if($('#copyBtn')){ $('#copyBtn').textContent='複製房號'; $('#copyBtn').style.background='var(--accentSoft)'; $('#copyBtn').style.borderColor='rgba(255,107,53,.3)'; $('#copyBtn').style.color='var(--accent)'; }
+    },2000);
+  }).catch(()=>{ alert('請手動複製房號：'+code); });
+}
+
+function leaveRoom(){
+  detachRoomListeners();
+  if(db&&currentRoomCode) db.collection('rooms').doc(currentRoomCode).collection('members').doc(currentUserId).delete().catch(()=>{});
+  currentRoomCode=null; isHost=false; roomMembers={};
+  renderWheelScreen();
+}
+
+// ─── LOAD GOOGLE MAPS ───
+function loadGoogleMaps(key){
+  return new Promise((resolve,reject)=>{
+    if(window.google&&window.google.maps){ resolve(); return; }
+    const s=document.createElement('script');
+    s.src=`https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&language=zh-TW`;
+    s.onload=resolve;
+    s.onerror=()=>reject(new Error('Google Maps 載入失敗'));
+    document.head.appendChild(s);
+  });
+}
+
+function getUserLocation(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){ resolve(); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos=>{ userLat=pos.coords.latitude; userLng=pos.coords.longitude; resolve(); },
+      ()=>resolve(), {timeout:5000}
+    );
+  });
+}
+
+function searchPlaces(category){
+  return new Promise(resolve=>{
+    if(!placesService){ resolve([]); return; }
+    placesService.nearbySearch({
+      location:new google.maps.LatLng(userLat,userLng),
+      radius:2000, keyword:category.query, type:'restaurant', language:'zh-TW',
+    },(results,status)=>{
+      if(status===google.maps.places.PlacesServiceStatus.OK&&results){
+        const processed=results.slice(0,8).map(place=>{
+          const lat=place.geometry.location.lat(), lng=place.geometry.location.lng();
+          const dist=getDistance(userLat,userLng,lat,lng);
+          return {
+            id:place.place_id, name:place.name,
+            rating:place.rating||0, totalRatings:place.user_ratings_total||0,
+            priceLevel:place.price_level, address:place.vicinity||'',
+            lat,lng, distance:dist,
+            distanceText:dist<1000?Math.round(dist)+'m':(dist/1000).toFixed(1)+'km',
+            open:place.opening_hours?place.opening_hours.isOpen():null,
+            photo:place.photos&&place.photos.length>0?place.photos[0].getUrl({maxWidth:400,maxHeight:300}):null,
+            photos:place.photos?place.photos.slice(0,4).map(p=>p.getUrl({maxWidth:120,maxHeight:120})):[],
+            match:Math.floor(70+Math.random()*25),
+          };
+        });
+        processed.sort((a,b)=>a.distance-b.distance);
+        resolve(processed);
+      } else { resolve([]); }
+    });
+  });
+}
+
+function getDistance(lat1,lng1,lat2,lng2){
+  const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function priceText(level){ return ['$','$','$$','$$$','$$$$'][level]||'$$'; }
+
+function clearMarkers(){ markers.forEach(m=>m.setMap(null)); markers=[]; }
+
+function showOnMap(restaurants,containerId,highlightIdx){
+  const container=document.getElementById(containerId);
+  if(!container||!window.google) return;
+  const map=new google.maps.Map(container,{
+    center:{lat:userLat,lng:userLng}, zoom:14,
+    disableDefaultUI:true, zoomControl:true,
+    styles:[
+      {elementType:"geometry",stylers:[{color:"#1d1d1d"}]},
+      {elementType:"labels.text.fill",stylers:[{color:"#999"}]},
+      {elementType:"labels.text.stroke",stylers:[{color:"#1d1d1d"}]},
+      {featureType:"road",elementType:"geometry",stylers:[{color:"#2c2c2c"}]},
+      {featureType:"water",elementType:"geometry",stylers:[{color:"#0e0e0e"}]},
+      {featureType:"poi",elementType:"labels",stylers:[{visibility:"off"}]},
+    ]
+  });
+  new google.maps.Marker({position:{lat:userLat,lng:userLng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:"#3B82F6",fillOpacity:1,strokeColor:"#fff",strokeWeight:2},title:"你的位置"});
+  const bounds=new google.maps.LatLngBounds();
+  bounds.extend({lat:userLat,lng:userLng});
+  restaurants.forEach((r,i)=>{
+    const hi=highlightIdx!==undefined&&i===highlightIdx;
+    const marker=new google.maps.Marker({
+      position:{lat:r.lat,lng:r.lng},map,
+      label:{text:String(i+1),color:"#fff",fontSize:"11px",fontWeight:"bold"},
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:hi?14:10,fillColor:hi?"#FF6B35":"#EF4444",fillOpacity:.9,strokeColor:"#fff",strokeWeight:hi?3:1.5},
+    });
+    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;font-size:13px;font-weight:700;color:#333">${r.name}<br><span style="font-size:11px;color:#888;font-weight:400">⭐${r.rating} · ${r.distanceText}</span></div>`});
+    marker.addListener('click',()=>iw.open(map,marker));
+    markers.push(marker);
+    bounds.extend({lat:r.lat,lng:r.lng});
+  });
+  map.fitBounds(bounds,40);
+  return map;
+}
+
+// ─── LOADING SCREEN ───
+function renderLoadingScreen(){
+  $('#screen').innerHTML=`
+    <div class="view key-screen" id="loadView">
+      <h1><span>揪</span>吃</h1>
+      <p style="margin-top:6px;margin-bottom:32px">轉動輪盤，用 Google 地圖<br>找到附近真實餐廳 🍽️</p>
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--accentSoft);display:flex;align-items:center;justify-content:center;font-size:28px;animation:pulse 1.5s ease infinite;margin-bottom:16px">🗺️</div>
+      <p id="loadStatus" style="color:var(--text);font-size:14px;font-weight:700">載入 Google Maps…</p>
+      <p id="loadSub" style="color:var(--textTer);font-size:11px;margin-top:6px">正在取得你的位置</p>
+      <div id="loadError" style="color:var(--red);font-size:12px;margin-top:16px;display:none;line-height:1.5;text-align:center"></div>
+    </div>
+  `;
+}
+
+async function autoInit(){
+  initFirebase();
+  renderLoadingScreen();
+  mapsApiKey='AIzaSyCSBoYhD3_1O4vwIM7xvgFb2n8vRYSDJHk';
+  try {
+    await loadGoogleMaps(mapsApiKey);
+    if($('#loadStatus')) $('#loadStatus').textContent='取得目前位置…';
+    await getUserLocation();
+    placesService=new google.maps.places.PlacesService(document.createElement('div'));
+    if($('#loadStatus')) $('#loadStatus').textContent='準備完成！';
+    setTimeout(()=>renderWheelScreen(),400);
+  } catch(e){
+    if($('#loadError')){
+      $('#loadError').style.display='block';
+      $('#loadError').innerHTML='Google Maps 載入失敗<br>請確認 API Key 已啟用<br><br><button class="demo-btn" onclick="mapsApiKey=\'\';renderWheelScreen()" style="margin-top:8px">使用展示模式</button>';
+      $('#loadStatus').textContent='載入失敗';
+      if($('#loadSub')) $('#loadSub').style.display='none';
+    }
+  }
+}
+
+// ─── WHEEL SCREEN ───
+function renderWheelScreen(){
+  currentRoomCode=null; isHost=false; roomMembers={};
+  detachRoomListeners();
+  $('#screen').innerHTML=`
+    <div class="view wheel-wrap" id="wheelView">
+      <div class="wheel-header">
+        <h1><span>揪</span>吃</h1>
+        <p>轉動輪盤，命運選餐！</p>
+      </div>
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheelCanvas" width="300" height="300" style="width:280px;height:280px"></canvas>
+      </div>
+      <button class="spin-btn" id="spinBtn">🎰 轉動輪盤</button>
+      <div id="resultArea" style="display:none;width:100%;margin-top:10px"></div>
+      <button onclick="renderJoinRoomView()" style="background:transparent;border:1px solid var(--border);color:var(--textSec);padding:10px 20px;border-radius:50px;font-size:12px;font-family:var(--font);cursor:pointer;margin-top:12px">
+        🚪 加入現有房間
+      </button>
+    </div>
+  `;
+  initWheel();
+}
+
+function initWheel(){
+  const canvas=$('#wheelCanvas');
+  const ctx=canvas.getContext('2d');
+  const segments=CATEGORIES;
+  const segAngle=360/segments.length;
+  let currentAngle=0, spinning=false;
+
+  function draw(rotation){
+    const size=300,cx=150,cy=150,r=142;
+    ctx.clearRect(0,0,size,size);
+    ctx.save(); ctx.shadowColor="rgba(255,107,53,.12)"; ctx.shadowBlur=40;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle="#18181C"; ctx.fill(); ctx.restore();
+    segments.forEach((seg,i)=>{
+      const sA=(i*segAngle-90+rotation)*Math.PI/180, eA=((i+1)*segAngle-90+rotation)*Math.PI/180;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,sA,eA); ctx.closePath();
+      const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+      g.addColorStop(0,seg.color+"44"); g.addColorStop(.6,seg.color+"22"); g.addColorStop(1,seg.color+"55");
+      ctx.fillStyle=g; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+r*Math.cos(sA),cy+r*Math.sin(sA));
+      ctx.strokeStyle="rgba(255,255,255,.06)"; ctx.lineWidth=1; ctx.stroke();
+      const mA=(sA+eA)/2, lr=r*.62, lx=cx+lr*Math.cos(mA), ly=cy+lr*Math.sin(mA);
+      ctx.save(); ctx.translate(lx,ly); ctx.rotate(mA+Math.PI/2); ctx.textAlign="center"; ctx.fillStyle="#fff";
+      ctx.font="bold 22px 'Noto Sans TC',sans-serif"; ctx.fillText(seg.emoji,0,-4);
+      ctx.font="bold 11px 'Noto Sans TC',sans-serif"; ctx.fillText(seg.label,0,14); ctx.restore();
+    });
+    const cG=ctx.createRadialGradient(cx,cy,0,cx,cy,30);
+    cG.addColorStop(0,"#2A2A2E"); cG.addColorStop(1,"#18181C");
+    ctx.beginPath(); ctx.arc(cx,cy,28,0,Math.PI*2); ctx.fillStyle=cG; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,28,0,Math.PI*2); ctx.strokeStyle="rgba(255,255,255,.08)"; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=spinning?"#FF6B35":"#fff"; ctx.font=`bold ${spinning?14:12}px 'Noto Sans TC',sans-serif`;
+    ctx.textAlign="center"; ctx.fillText(spinning?"🔥":"SPIN",cx,cy+5);
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle="rgba(255,255,255,.05)"; ctx.lineWidth=3; ctx.stroke();
+  }
+  draw(0);
+
+  function spin(){
+    if(spinning) return;
+    spinning=true; $('#spinBtn').disabled=true; $('#spinBtn').textContent='轉動中…';
+    $('#resultArea').style.display='none';
+    const extra=5+Math.random()*3;
+    const targetIdx=Math.floor(Math.random()*segments.length);
+    const targetAngle=currentAngle+extra*360+(360-targetIdx*segAngle-segAngle/2);
+    const duration=4000, startTime=performance.now(), startAngle=currentAngle;
+    function ease(t){ return 1-Math.pow(1-t,4); }
+    function animate(now){
+      const elapsed=now-startTime, progress=Math.min(elapsed/duration,1);
+      const a=startAngle+(targetAngle-startAngle)*ease(progress);
+      currentAngle=a; draw(a);
+      if(progress<1){ requestAnimationFrame(animate); }
+      else{ spinning=false; currentAngle=a%360; currentCategory=segments[targetIdx]; showWheelResult(segments[targetIdx]); }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  $('#spinBtn').addEventListener('click',spin);
+  canvas.addEventListener('click',spin);
+}
+
+function showWheelResult(cat){
+  const area=$('#resultArea');
+  area.style.display='block'; $('#spinBtn').style.display='none';
+  area.innerHTML=`
+    <div class="result-area">
+      <div class="result-box" style="background:${cat.color}18;border-color:${cat.color}44">
+        <div class="emoji">${cat.emoji}</div>
+        <h2>今天吃${cat.label}！</h2>
+        <p class="sub" id="restaurantCount">搜尋附近餐廳中…</p>
+      </div>
+      <p class="mode-label">選擇決定方式</p>
+      <button class="mode-btn" onclick="startMode('swipe')">
+        <div class="mode-icon" style="background:var(--accentSoft)">🔥</div>
+        <div style="flex:1"><h3>滑卡模式</h3><p>每人各自滑，系統找交集</p></div>
+        <span class="mode-arrow">›</span>
+      </button>
+      <button class="mode-btn" onclick="startMode('vote')">
+        <div class="mode-icon" style="background:var(--blueSoft)">🗳️</div>
+        <div style="flex:1"><h3>投票模式</h3><p>匿名投票，公平決定</p></div>
+        <span class="mode-arrow">›</span>
+      </button>
+      <button class="mode-btn" onclick="startMode('ai')">
+        <div class="mode-icon" style="background:var(--goldSoft)">🤖</div>
+        <div style="flex:1"><h3>AI 幫你選</h3><p>根據評價與距離直接推薦</p></div>
+        <span class="mode-arrow">›</span>
+      </button>
+      <button class="respin-btn" onclick="renderWheelScreen()">🔄 重新轉</button>
+    </div>
+  `;
+  if(placesService){
+    searchPlaces(cat).then(restaurants=>{
+      currentRestaurants=restaurants;
+      if($('#restaurantCount')) $('#restaurantCount').textContent=`找到附近 ${restaurants.length} 間${cat.label}餐廳`;
+    });
+  } else {
+    currentRestaurants=generateDemoData(cat);
+    if($('#restaurantCount')) $('#restaurantCount').textContent=`展示模式 · ${currentRestaurants.length} 間餐廳`;
+  }
+}
+
+function generateDemoData(cat){
+  const names={
+    japanese:["麵屋武藏","築地鮮魚","銀座天婦羅","御膳和食","一番拉麵","鶴壽司","大和定食","宮崎燒肉"],
+    chinese:["老宋牛肉麵","鼎泰豐","阿嬤的味道","川味麻辣","龍門客棧","福記小吃","翡翠餐廳","紅燒半筋半肉"],
+    korean:["韓鄉村烤肉","首爾部隊鍋","歐巴炸雞","明洞年糕","韓金館","釜山海鮮鍋","首爾道地","韓式烤肉"],
+    thai:["暹羅廚房","曼谷小館","泰澄海鮮","芒果樹","泰味廚","普吉小棧","清邁涼拌","曼谷夜市"],
+    italian:["Trattoria","拿坡里披薩","羅馬假期","Gelato Bar","米蘭廚房","托斯卡尼","帕瑪森","西西里"],
+    hotpot:["海港城火鍋","鴛鴦麻辣","涮涮屋","石頭鍋","小肥羊","鍋大爺","天香回味","老四川"],
+    american:["Smash Burger","BBQ Station","The Diner","Wings & Beer","Uncle Sam","美式漢堡","Jack's Grill","NY Pizza"],
+    dessert:["法式甜點屋","抹茶研究所","雪花冰舖","Waffle Time","甜蜜時光","幸福甜點","糖果屋","可頌工坊"],
+  };
+  const list=names[cat.id]||names.japanese;
+  return list.map((name,i)=>({
+    id:'demo_'+i, name, rating:(3.8+Math.random()*1.1).toFixed(1)*1,
+    totalRatings:Math.floor(50+Math.random()*800), priceLevel:Math.floor(Math.random()*3)+1,
+    address:'附近區域 '+String.fromCharCode(65+i)+'路',
+    lat:userLat+(Math.random()-.5)*.02, lng:userLng+(Math.random()-.5)*.02,
+    distance:Math.floor(100+Math.random()*1800), distanceText:Math.floor(100+Math.random()*1800)+'m',
+    open:Math.random()>.2, photo:null, photos:[], match:Math.floor(70+Math.random()*25),
+  }));
+}
+
+// ─── START MODE ───
+window.startMode=function(mode){
+  if(currentRestaurants.length===0){ alert('沒有找到附近餐廳，請重新轉輪盤'); return; }
+  if(mode==='ai'){ renderAIMode(); return; }
+  if(db) createRoom(mode);
+  else mode==='swipe'?renderSwipeMode():renderVoteMode();
+};
+
+// ─── MODE HEADER ───
+function modeHeaderHTML(title){
+  const right = currentRoomCode
+    ? `<span style="font-size:10px;color:var(--accent);background:var(--accentSoft);padding:3px 9px;border-radius:8px;font-weight:700;letter-spacing:1px">${currentRoomCode}</span>`
+    : `<div class="avatars"><span>😎</span><span>😄</span><span>😊</span><span class="more">+2</span></div>`;
+  const backAction = currentRoomCode ? 'leaveRoom()' : 'renderWheelScreen()';
+  return `
+    <div class="mode-header">
+      <button class="back-btn" onclick="${backAction}">‹</button>
+      <h2>${currentCategory.emoji} ${title}</h2>
+      ${right}
+    </div>
+  `;
+}
+
+// ─── SWIPE MODE ───
+function renderSwipeMode(){
+  swipeIndex=0; swipeLiked=[];
+  $('#screen').innerHTML=`
+    <div class="view" id="swipeView">
+      ${modeHeaderHTML('滑卡選餐廳')}
+      <div class="map-container"><div id="swipeMap"></div><div class="map-loading" id="swipeMapLoading">🗺️ 載入地圖中…</div></div>
+      <div class="swipe-body">
+        <div class="progress-bar" id="swipeProgress"></div>
+        <div class="card-area" id="cardArea"></div>
+        <div class="action-buttons">
+          <button class="round-btn" style="background:var(--redSoft);border-color:rgba(239,68,68,.4);color:var(--red)" onclick="doSwipe('left')">✕</button>
+          <button class="round-btn" style="background:var(--blueSoft);border-color:rgba(59,130,246,.4);color:var(--blue)" onclick="doSwipe('super')">⭐</button>
+          <button class="round-btn" style="background:var(--greenSoft);border-color:rgba(34,197,94,.4);color:var(--green)" onclick="doSwipe('right')">♥</button>
+        </div>
+      </div>
+    </div>
+  `;
+  renderSwipeProgress();
+  renderSwipeCard();
+  if(window.google){ showOnMap(currentRestaurants,'swipeMap',swipeIndex); $('#swipeMapLoading').style.display='none'; }
+  else { $('#swipeMapLoading').textContent='展示模式：地圖不可用'; }
+}
+
+function renderSwipeProgress(){
+  const bar=$('#swipeProgress'); if(!bar) return;
+  bar.innerHTML=currentRestaurants.map((_,i)=>`<div class="progress-dot ${i<swipeIndex?'done':i===swipeIndex?'current':''}"></div>`).join('');
+}
+
+function renderSwipeCard(){
+  const area=$('#cardArea'); if(!area) return;
+  if(swipeIndex>=currentRestaurants.length){ renderSwipeDone(); return; }
+  const r=currentRestaurants[swipeIndex];
+  const photoHTML=r.photo
+    ?`<img src="${r.photo}" class="card-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="card-visual" style="display:none;background:linear-gradient(135deg,${currentCategory.color}18,${currentCategory.color}06)"><span class="emoji">${currentCategory.emoji}</span></div>`
+    :`<div class="card-visual" style="background:linear-gradient(135deg,${currentCategory.color}18,${currentCategory.color}06)"><span class="emoji">${currentCategory.emoji}</span></div>`;
+  area.innerHTML=`
+    <div class="restaurant-card" id="swipeCard">
+      <div style="height:140px;overflow:hidden;position:relative">
+        ${photoHTML}
+        <div class="match-badge">${r.match}%</div>
+      </div>
+      <div class="card-info">
+        <h3>${r.name}</h3>
+        <div class="sub">${currentCategory.label} · ${priceText(r.priceLevel)}${r.open!==null?(r.open?' · <span style="color:var(--green)">營業中</span>':' · <span style="color:var(--red)">休息中</span>'):''}</div>
+        <div class="addr">📍 ${r.address}</div>
+        <div class="stat-grid">
+          <div class="mini-stat"><div class="label">距離</div><div class="val">${r.distanceText}</div></div>
+          <div class="mini-stat"><div class="label">評分</div><div class="val">⭐ ${r.rating}</div></div>
+          <div class="mini-stat"><div class="label">評價數</div><div class="val">${r.totalRatings}</div></div>
+        </div>
+        ${r.photos.length>0?`<div style="display:flex;gap:4px;margin-top:8px;overflow-x:auto">${r.photos.map(p=>`<img src="${p}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0">`).join('')}</div>`:''}
+      </div>
+    </div>
+  `;
+  const card=$('#swipeCard');
+  let startX=0, dragX=0, dragging=false;
+  card.addEventListener('pointerdown',e=>{ startX=e.clientX; dragging=true; card.style.transition='none'; });
+  document.addEventListener('pointermove',e=>{
+    if(!dragging) return;
+    dragX=e.clientX-startX;
+    card.style.transform=`translateX(${dragX}px) rotate(${dragX*.06}deg)`;
+    let ex=area.querySelector('.swipe-label'); if(ex) ex.remove();
+    if(dragX>30) area.insertAdjacentHTML('afterbegin','<div class="swipe-label like">想吃！</div>');
+    else if(dragX<-30) area.insertAdjacentHTML('afterbegin','<div class="swipe-label nope">不要</div>');
+  });
+  document.addEventListener('pointerup',()=>{
+    if(!dragging) return; dragging=false;
+    let ex=area.querySelector('.swipe-label'); if(ex) ex.remove();
+    if(dragX>80) doSwipe('right');
+    else if(dragX<-80) doSwipe('left');
+    else{ card.style.transition='transform .25s ease'; card.style.transform=''; dragX=0; }
+  });
+}
+
+window.doSwipe=function(dir){
+  const card=$('#swipeCard'); if(!card) return;
+  card.style.transition='transform .28s ease, opacity .28s ease';
+  card.style.transform=`translateX(${dir==='left'?-500:500}px) rotate(${dir==='left'?-20:20}deg)`;
+  card.style.opacity='0';
+  if(dir==='right'||dir==='super') swipeLiked.push(currentRestaurants[swipeIndex]);
+  setTimeout(()=>{
+    swipeIndex++;
+    renderSwipeProgress();
+    renderSwipeCard();
+    if(window.google&&swipeIndex<currentRestaurants.length){ showOnMap(currentRestaurants,'swipeMap',swipeIndex); $('#swipeMapLoading').style.display='none'; }
+  },280);
+};
+
+async function renderSwipeDone(){
+  const area=$('#cardArea'); if(!area) return;
+  const btns=document.querySelector('.action-buttons'); if(btns) btns.style.display='none';
+
+  // Room mode: upload and wait for everyone
+  if(currentRoomCode&&db){
+    area.innerHTML=`
+      <div class="done-screen">
+        <span style="font-size:44px">⏳</span>
+        <h3 style="color:var(--text);font-size:16px;font-weight:700;margin:10px 0 4px">你完成了！</h3>
+        <p id="swipeWaitStatus" style="color:var(--textSec);font-size:12px">等待其他人完成滑卡…</p>
+        <div style="width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-top:14px"></div>
+      </div>
+    `;
+    try {
+      await db.collection('rooms').doc(currentRoomCode).collection('swipes').doc(currentUserId).set({
+        liked:swipeLiked.map(r=>r.id), done:true,
+      });
+    } catch(e){ console.error(e); }
+    listenForAllSwipesDone();
+    return;
+  }
+
+  // Local mode
+  const best=swipeLiked.length>0?swipeLiked.reduce((a,b)=>a.rating*a.match>b.rating*b.match?a:b):null;
+  if(best){
+    area.innerHTML=`
+      <div class="done-screen" style="padding:0">
+        <span style="font-size:48px">🎉</span>
+        <h2 style="color:var(--text);font-size:18px;font-weight:800;margin:8px 0 2px">滑卡完成！</h2>
+        <p style="color:var(--textSec);font-size:12px;margin-bottom:12px">你喜歡了 ${swipeLiked.length} 間</p>
+        <div style="width:100%;background:${currentCategory.color}14;border:1.5px solid ${currentCategory.color}44;border-radius:var(--radius);padding:16px;text-align:center">
+          ${best.photo?`<img src="${best.photo}" style="width:100%;height:100px;object-fit:cover;border-radius:10px;margin-bottom:8px">`:`<span style="font-size:40px">${currentCategory.emoji}</span>`}
+          <h3 style="color:var(--text);font-size:16px;font-weight:800;margin:4px 0 2px">${best.name}</h3>
+          <p style="color:var(--textSec);font-size:11px">⭐ ${best.rating} · ${best.distanceText} · ${best.totalRatings} 評價</p>
+        </div>
+        <button onclick="renderWheelScreen()" style="margin-top:14px;padding:10px 28px;border-radius:50px;background:var(--accentSoft);border:1px solid rgba(255,107,53,.4);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">← 回到輪盤</button>
+      </div>
+    `;
+    if(window.google) showOnMap([best],'swipeMap',0);
+  } else {
+    area.innerHTML=`<div class="done-screen"><span style="font-size:44px">😅</span><h3 style="color:var(--text);margin:10px 0 4px">都沒喜歡的…</h3><button onclick="renderWheelScreen()" style="margin-top:14px;padding:10px 28px;border-radius:50px;background:var(--accentSoft);border:1px solid rgba(255,107,53,.4);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">🔄 重新轉</button></div>`;
+  }
+}
+
+function listenForAllSwipesDone(){
+  const memberCount=Object.keys(roomMembers).length||1;
+  const unsub=db.collection('rooms').doc(currentRoomCode).collection('swipes')
+    .onSnapshot(snap=>{
+      const done=[];
+      snap.forEach(doc=>{ if(doc.data().done) done.push(doc.data()); });
+      const statusEl=$('#swipeWaitStatus');
+      if(statusEl) statusEl.textContent=`等待其他人… (${done.length}/${memberCount} 完成)`;
+      if(done.length>=memberCount){
+        unsub();
+        const likedSets=done.map(d=>new Set(d.liked));
+        const intersection=currentRestaurants.filter(r=>likedSets.every(s=>s.has(r.id)));
+        showSwipeRoomResult(intersection);
+      }
+    });
+  roomListeners.push(unsub);
+}
+
+function showSwipeRoomResult(intersection){
+  const area=$('#cardArea'); if(!area) return;
+  if(intersection.length>0){
+    area.innerHTML=`
+      <div class="done-screen" style="padding:0">
+        <span style="font-size:44px">🎊</span>
+        <h2 style="color:var(--text);font-size:18px;font-weight:800;margin:8px 0 2px">大家都想吃！</h2>
+        <p style="color:var(--textSec);font-size:12px;margin-bottom:12px">共 ${intersection.length} 間大家都喜歡的</p>
+        ${intersection.slice(0,3).map((r,i)=>`
+          <div style="width:100%;background:${i===0?currentCategory.color+'14':'var(--card)'};border:1.5px solid ${i===0?currentCategory.color+'44':'var(--border)'};border-radius:var(--radiusSm);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            ${i===0?'<span style="font-size:18px">👑</span>':'<span style="font-size:18px">  </span>'}
+            <span style="font-size:22px">${currentCategory.emoji}</span>
+            <div style="flex:1"><p style="color:var(--text);font-size:13px;font-weight:700">${r.name}</p><p style="color:var(--textSec);font-size:11px;margin-top:2px">⭐ ${r.rating} · ${r.distanceText}</p></div>
+          </div>`).join('')}
+        <button onclick="renderWheelScreen()" style="margin-top:8px;padding:10px 28px;border-radius:50px;background:var(--accentSoft);border:1px solid rgba(255,107,53,.4);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">← 回到輪盤</button>
+      </div>
+    `;
+    if(window.google) showOnMap(intersection.slice(0,3),'swipeMap',0);
+  } else {
+    area.innerHTML=`
+      <div class="done-screen">
+        <span style="font-size:44px">😅</span>
+        <h3 style="color:var(--text);font-size:16px;font-weight:700;margin:10px 0 4px">大家口味不同…</h3>
+        <p style="color:var(--textSec);font-size:12px">沒有共同喜歡的，要不要重選？</p>
+        <button onclick="renderWheelScreen()" style="margin-top:14px;padding:10px 28px;border-radius:50px;background:var(--accentSoft);border:1px solid rgba(255,107,53,.4);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">🔄 重新轉</button>
+      </div>
+    `;
+  }
+}
+
+// ─── VOTE MODE ───
+function renderVoteMode(){
+  voteSelections={};
+  const maxVotes=2;
+  const screen=$('#screen');
+  screen.innerHTML=`
+    <div class="view" id="voteView">
+      ${modeHeaderHTML('投票選餐廳')}
+      <div class="map-container"><div id="voteMap"></div><div class="map-loading" id="voteMapLoading">🗺️ 載入地圖中…</div></div>
+      <div class="vote-body" id="voteBody">
+        <div class="room-info">
+          <div>
+            <h3>聚餐投票</h3>
+            <div class="code">${currentRoomCode?`房間：<b>${currentRoomCode}</b> · 匿名`:'本地模式'}</div>
+          </div>
+          <span class="vote-status" id="voteStatus" style="background:var(--blueSoft);color:var(--blue)">
+            ${currentRoomCode?Object.keys(roomMembers).length+' 人加入':'本地'}
+          </span>
+        </div>
+        <p style="color:var(--textSec);font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:8px">選擇最多 ${maxVotes} 間 👇</p>
+        <div id="voteOptions"></div>
+      </div>
+      <div class="vote-submit"><button id="voteSubmitBtn" onclick="submitVote()" disabled style="background:var(--surfaceUp)">投票 (0/${maxVotes})</button></div>
+    </div>
+  `;
+  const optionsEl=$('#voteOptions');
+  currentRestaurants.slice(0,6).forEach((r,i)=>{
+    const div=document.createElement('div');
+    div.className='vote-option';
+    div.style.background='var(--card)'; div.style.borderColor='var(--border)';
+    div.innerHTML=`
+      <div class="check"></div>
+      <span class="emoji">${currentCategory.emoji}</span>
+      <div style="flex:1"><h3>${r.name}</h3><div class="sub">${r.address} · ${priceText(r.priceLevel)}</div></div>
+      <span class="rating">⭐ ${r.rating}</span>
+    `;
+    div.addEventListener('click',()=>{
+      if(div.classList.contains('submitted')) return;
+      if(div.classList.contains('selected')){
+        div.classList.remove('selected');
+        div.style.background='var(--card)'; div.style.borderColor='var(--border)';
+        div.querySelector('.check').textContent='';
+        delete voteSelections[r.id];
+      } else {
+        if(Object.keys(voteSelections).length>=maxVotes) return;
+        div.classList.add('selected');
+        div.style.background=currentCategory.color+'12'; div.style.borderColor=currentCategory.color+'66';
+        div.querySelector('.check').textContent='✓';
+        voteSelections[r.id]=true;
+      }
+      const count=Object.keys(voteSelections).length;
+      const btn=$('#voteSubmitBtn');
+      btn.textContent=`投票 (${count}/${maxVotes})`;
+      btn.disabled=count===0;
+      btn.style.background=count>0?`linear-gradient(135deg,${currentCategory.color},${currentCategory.color}cc)`:'var(--surfaceUp)';
+      btn.style.boxShadow=count>0?`0 6px 24px ${currentCategory.color}33`:'none';
+    });
+    optionsEl.appendChild(div);
+  });
+  if(window.google){ showOnMap(currentRestaurants.slice(0,6),'voteMap'); $('#voteMapLoading').style.display='none'; }
+  else { $('#voteMapLoading').textContent='展示模式：地圖不可用'; }
+}
+
+window.submitVote=async function(){
+  // Room mode: write to Firestore and listen for others
+  if(currentRoomCode&&db){
+    const btn=$('#voteSubmitBtn');
+    if(btn){ btn.disabled=true; btn.textContent='提交中…'; }
+    $$('.vote-option').forEach(el=>el.classList.add('submitted'));
+    try {
+      await db.collection('rooms').doc(currentRoomCode).collection('votes').doc(currentUserId).set({
+        picks:Object.keys(voteSelections), submitted:true,
+      });
+    } catch(e){ console.error(e); }
+    document.querySelector('.vote-submit').innerHTML=`
+      <div style="text-align:center;padding:10px">
+        <div style="width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
+        <p style="color:var(--textSec);font-size:12px">已提交，等待其他人…</p>
+      </div>
+    `;
+    listenForVoteResults();
+    return;
+  }
+
+  // Local mode: simulate results
+  const restaurants=currentRestaurants.slice(0,6);
+  const results=restaurants.map(r=>({
+    ...r,
+    score:voteSelections[r.id]?8+Math.floor(Math.random()*5):1+Math.floor(Math.random()*6),
+    voters:voteSelections[r.id]?3+Math.floor(Math.random()*2):1+Math.floor(Math.random()*2),
+  })).sort((a,b)=>b.score-a.score);
+  showVoteResults(results);
+};
+
+function listenForVoteResults(){
+  const memberCount=Object.keys(roomMembers).length||1;
+  const unsub=db.collection('rooms').doc(currentRoomCode).collection('votes')
+    .onSnapshot(snap=>{
+      const scores={};
+      let submitted=0;
+      snap.forEach(doc=>{
+        const d=doc.data();
+        if(d.submitted){ submitted++; (d.picks||[]).forEach(id=>{ scores[id]=(scores[id]||0)+1; }); }
+      });
+      const statusEl=$('#voteStatus');
+      if(statusEl) statusEl.textContent=`${submitted}/${memberCount} 已投票`;
+      if(submitted>=memberCount){
+        unsub();
+        const restaurants=currentRestaurants.slice(0,6);
+        const results=restaurants.map(r=>({
+          ...r, score:scores[r.id]||0, voters:scores[r.id]||0,
+        })).sort((a,b)=>b.score-a.score);
+        showVoteResults(results);
+      }
+    });
+  roomListeners.push(unsub);
+}
+
+function showVoteResults(results){
+  const maxScore=Math.max(...results.map(r=>r.score),1);
+  if($('#voteStatus')) $('#voteStatus').textContent='投票結束 ✓';
+  const body=$('#voteBody');
+  if(body) { const p=body.querySelector('p'); if(p) p.textContent='📊 投票結果'; }
+  const opts=$('#voteOptions');
+  opts.innerHTML=results.map((r,i)=>{
+    const pct=Math.round(r.score/maxScore*100);
+    const isWinner=i===0;
+    return `
+      <div class="result-bar" style="background:${isWinner?currentCategory.color+'14':'var(--card)'};border:1.5px solid ${isWinner?currentCategory.color+'55':'var(--border)'}">
+        <div class="result-fill" style="width:${pct}%;background:${isWinner?currentCategory.color+'18':'var(--surfaceUp)'}"></div>
+        <div class="result-content">
+          ${isWinner?'<span style="font-size:16px">👑</span>':''}
+          <span style="font-size:22px">${currentCategory.emoji}</span>
+          <div style="flex:1"><h3 style="color:var(--text);font-size:13px;font-weight:700">${r.name}</h3><p style="color:var(--textTer);font-size:10px;margin-top:2px">${r.voters} 票 · ${r.score} 分</p></div>
+          <span class="result-pct" style="color:${isWinner?currentCategory.color:'var(--textTer)'}">${pct}%</span>
+        </div>
+      </div>
+    `;
+  }).join('')+`
+    <div class="winner-box" style="background:var(--greenSoft);border:1px solid rgba(34,197,94,.3)">
+      <p style="color:var(--green);font-size:14px;font-weight:700">🎉 ${results[0].name} 獲勝！</p>
+      <p style="color:var(--textSec);font-size:11px;margin-top:4px">📍 ${results[0].distanceText} · ⭐ ${results[0].rating}</p>
+    </div>
+  `;
+  document.querySelector('.vote-submit').innerHTML=`<button onclick="renderWheelScreen()" style="width:100%;padding:14px;border-radius:50px;border:1px solid var(--border);background:var(--surfaceUp);color:var(--textSec);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">← 回到輪盤</button>`;
+  if(window.google){ showOnMap([results[0]],'voteMap',0); $('#voteMapLoading').style.display='none'; }
+}
+
+// ─── AI MODE ───
+function renderAIMode(){
+  $('#screen').innerHTML=`
+    <div class="view" id="aiView">
+      ${modeHeaderHTML('AI 推薦')}
+      <div class="ai-body" id="aiBody">
+        <div class="ai-loader">
+          <div class="ai-avatar" style="background:var(--goldSoft)">🤖</div>
+          <p style="color:var(--text);font-size:16px;font-weight:700;margin-bottom:6px" id="aiLoadText">AI 分析中</p>
+          <p style="color:var(--textSec);font-size:12px">正在分析餐廳資料與群組偏好</p>
+          <div class="ai-steps" id="aiSteps">
+            <div class="ai-step"><div class="ai-dot" style="background:var(--green)"></div><span style="color:var(--text);font-size:12px">讀取 Google Maps 資料</span></div>
+            <div class="ai-step" style="opacity:.5"><div class="ai-dot" style="background:var(--textTer)"></div><span style="color:var(--textTer);font-size:12px">分析評價與距離</span></div>
+            <div class="ai-step" style="opacity:.3"><div class="ai-dot" style="background:var(--textTer)"></div><span style="color:var(--textTer);font-size:12px">計算最佳匹配</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  const steps=$('#aiSteps').children;
+  let dots='';
+  const dotInt=setInterval(()=>{ dots=dots.length>=3?'':dots+'.'; if($('#aiLoadText')) $('#aiLoadText').textContent='AI 分析中'+dots; },400);
+  setTimeout(()=>{ steps[1].style.opacity='1'; steps[1].querySelector('.ai-dot').style.background='var(--green)'; steps[1].querySelector('span').style.color='var(--text)'; },1000);
+  setTimeout(()=>{ steps[2].style.opacity='1'; steps[2].querySelector('.ai-dot').style.background='var(--green)'; steps[2].querySelector('span').style.color='var(--text)'; },2000);
+  setTimeout(()=>{ clearInterval(dotInt); showAIResult(); },3000);
+}
+
+function showAIResult(){
+  const sorted=[...currentRestaurants].sort((a,b)=>(b.rating*b.match)-(a.rating*a.match));
+  const pick=sorted[0];
+  $('#aiBody').innerHTML=`
+    <div class="ai-result" style="width:100%">
+      <div style="text-align:center;margin-bottom:12px">
+        <span style="font-size:44px">✨</span>
+        <p style="color:var(--text);font-size:18px;font-weight:800;margin:6px 0 2px">AI 推薦結果</p>
+        <p style="color:var(--textSec);font-size:12px">根據評價、距離與匹配度：</p>
+      </div>
+      <div class="map-container" style="margin:0 0 12px;height:160px"><div id="aiMap" style="width:100%;height:100%"></div></div>
+      <div class="ai-pick-card" style="background:${currentCategory.color}14;border-color:${currentCategory.color}44">
+        ${pick.photo?`<img src="${pick.photo}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:8px">`:`<span class="emoji">${currentCategory.emoji}</span>`}
+        <h2>${pick.name}</h2>
+        <p class="sub">${pick.address}</p>
+        <div class="ai-stats">
+          <div class="ai-stat"><div class="num" style="color:var(--gold)">⭐ ${pick.rating}</div><div class="label">${pick.totalRatings} 評價</div></div>
+          <div class="ai-stat"><div class="num" style="color:var(--green)">${pick.match}%</div><div class="label">匹配度</div></div>
+          <div class="ai-stat"><div class="num" style="color:var(--text)">📍</div><div class="label">${pick.distanceText}</div></div>
+        </div>
+      </div>
+      <div class="ai-reason">
+        <h4>🧠 AI 分析理由</h4>
+        <p>在附近的${currentCategory.label}餐廳中，${pick.name}擁有 ${pick.rating} 分的高評價（${pick.totalRatings} 則評論），距離僅 ${pick.distanceText}。${pick.open===true?'目前營業中，':''}綜合評分最適合你們聚餐。</p>
+      </div>
+      <div class="ai-actions">
+        <button onclick="renderWheelScreen()" style="background:var(--surfaceUp);border:1px solid var(--border);color:var(--textSec)">🔄 重選</button>
+        <button style="background:linear-gradient(135deg,var(--green),#34D399);border:none;color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)">✓ 就決定是你了</button>
+      </div>
+    </div>
+  `;
+  if(window.google) showOnMap([pick],'aiMap',0);
+}
+
+// ─── INIT ───
+autoInit();
+</script>
+</body>
+</html>
