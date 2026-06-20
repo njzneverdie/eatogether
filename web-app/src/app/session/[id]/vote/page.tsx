@@ -12,7 +12,7 @@ export default function VotePage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const { sessionId, participantId, displayName, voteSubmode, cuisineType } = useSessionStore()
-  const { data: restaurants = [], isLoading } = useRestaurants(sessionId, cuisineType)
+  const { data: restaurants = [], isLoading, error } = useRestaurants(sessionId, cuisineType)
   const [ordered, setOrdered] = useState<Restaurant[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [votedCount, setVotedCount] = useState(0)
@@ -92,6 +92,21 @@ export default function VotePage() {
         <div className="w-10 h-10 border-2 border-[#1a1f36] border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-[#8b95c4] text-sm">載入餐廳中…</p>
       </div>
+    </main>
+  )
+
+  if (error) return (
+    <main className="min-h-screen bg-[#f0f2f8] flex flex-col items-center justify-center p-6 gap-4">
+      <div className="w-16 h-16 bg-[#fde8e8] rounded-full flex items-center justify-center">
+        <svg className="w-8 h-8 text-[#ef4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+      </div>
+      <div className="text-center">
+        <h2 className="text-lg font-bold text-[#1a1f36]">找不到餐廳</h2>
+        <p className="text-[#8b95c4] text-sm mt-1">{(error as Error).message}</p>
+      </div>
+      <button onClick={() => window.location.reload()} className="bg-[#1a1f36] text-white font-semibold px-6 py-3 rounded-xl text-sm">重新載入</button>
     </main>
   )
 
