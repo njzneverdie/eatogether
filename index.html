@@ -183,6 +183,7 @@ let swipeIndex = 0;
 let swipeLiked = [];
 let voteSelections = {};
 let markers = [];
+let swipePointerCleanup = null;
 
 // Room state
 let db = null;
@@ -195,6 +196,20 @@ let roomListeners = [];
 // ─── HELPERS ───
 function $(sel){ return document.querySelector(sel); }
 function $$(sel){ return document.querySelectorAll(sel); }
+function esc(value){
+  const div = document.createElement('div');
+  div.textContent = String(value ?? '');
+  return div.innerHTML;
+}
+function escAttr(value){
+  return esc(value).replace(/`/g, '&#96;');
+}
+function cleanupSwipePointerListeners(){
+  if(swipePointerCleanup){
+    swipePointerCleanup();
+    swipePointerCleanup = null;
+  }
+}
 
 // ─── FIREBASE INIT ───
 function initFirebase(){
@@ -277,7 +292,7 @@ async function tryJoinRoom(raw){
   if(!db){ showJoinError('連線失敗，請重試'); return; }
   const code = (raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   const formatted = code.length>=8 ? code.slice(0,4)+'-'+code.slice(4,8) : raw.toUpperCase().trim();
-  if(formatted.replace('-','').length < 8){ showJoinError('請輸入完整的 8 碼房號'); return; }
+  if(formatted.replace(/-/g,'').length < 8){ showJoinError('請輸入完整的 8 碼房號'); return; }
   const btn=$('#joinSubmitBtn');
   if(btn){ btn.disabled=true; btn.textContent='加入中…'; }
   try {
@@ -370,7 +385,7 @@ function renderMemberList(){
   el.innerHTML=entries.map(([uid,m])=>`
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-size:20px">${m.isHost?'👑':'😊'}</span>
-      <span style="color:var(--text);font-size:13px;font-weight:600">${m.nickname}</span>
+      <span style="color:var(--text);font-size:13px;font-weight:600">${esc(m.nickname)}</span>
       ${uid===currentUserId?'<span style="color:var(--accent);font-size:10px;background:var(--accentSoft);padding:2px 8px;border-radius:8px">你</span>':''}
     </div>
   `).join('');
@@ -381,7 +396,7 @@ function renderWaitingAction(code, mode){
   const count=Object.keys(roomMembers).length;
   if(isHost){
     el.innerHTML=`
-      <button onclick="startRoom('${code}','${mode}')"
+      <button onclick="startRoom(this,'${code}','${mode}')"
         style="width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--accent),#FF8F65);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);box-shadow:0 6px 24px rgba(255,107,53,.3)">
         開始 · ${count} 人加入
       </button>
@@ -392,10 +407,10 @@ function renderWaitingAction(code, mode){
   }
 }
 
-async function startRoom(code, mode){
+async function startRoom(btn, code, mode){
   if(!isHost||!db) return;
-  const btn=event.target;
-  btn.disabled=true; btn.textContent='開始中…';
+  if(btn){ btn.disabled=true; btn.textContent='開始中…';
+  }
   await db.collection('rooms').doc(code).update({status:'active'});
   detachRoomListeners();
   mode==='swipe'?renderSwipeMode():renderVoteMode();
@@ -484,6 +499,7 @@ function priceText(level){ return ['$','$','$$','$$$','$$$$'][level]||'$$'; }
 function clearMarkers(){ markers.forEach(m=>m.setMap(null)); markers=[]; }
 
 function showOnMap(restaurants,containerId,highlightIdx){
+  clearMarkers();
   const container=document.getElementById(containerId);
   if(!container||!window.google) return;
   const map=new google.maps.Map(container,{
@@ -498,7 +514,7 @@ function showOnMap(restaurants,containerId,highlightIdx){
       {featureType:"poi",elementType:"labels",stylers:[{visibility:"off"}]},
     ]
   });
-  new google.maps.Marker({position:{lat:userLat,lng:userLng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:"#3B82F6",fillOpacity:1,strokeColor:"#fff",strokeWeight:2},title:"你的位置"});
+  markers.push(new google.maps.Marker({position:{lat:userLat,lng:userLng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:"#3B82F6",fillOpacity:1,strokeColor:"#fff",strokeWeight:2},title:"你的位置"}));
   const bounds=new google.maps.LatLngBounds();
   bounds.extend({lat:userLat,lng:userLng});
   restaurants.forEach((r,i)=>{
@@ -508,7 +524,7 @@ function showOnMap(restaurants,containerId,highlightIdx){
       label:{text:String(i+1),color:"#fff",fontSize:"11px",fontWeight:"bold"},
       icon:{path:google.maps.SymbolPath.CIRCLE,scale:hi?14:10,fillColor:hi?"#FF6B35":"#EF4444",fillOpacity:.9,strokeColor:"#fff",strokeWeight:hi?3:1.5},
     });
-    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;font-size:13px;font-weight:700;color:#333">${r.name}<br><span style="font-size:11px;color:#888;font-weight:400">⭐${r.rating} · ${r.distanceText}</span></div>`});
+    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;font-size:13px;font-weight:700;color:#333">${esc(r.name)}<br><span style="font-size:11px;color:#888;font-weight:400">⭐${esc(r.rating)} · ${esc(r.distanceText)}</span></div>`});
     marker.addListener('click',()=>iw.open(map,marker));
     markers.push(marker);
     bounds.extend({lat:r.lat,lng:r.lng});
@@ -554,7 +570,8 @@ async function autoInit(){
 
 // ─── WHEEL SCREEN ───
 function renderWheelScreen(){
-  currentRoomCode=null; isHost=false; roomMembers={};
+  currentRoomCode=null; isHost=false; roomMembers={}; swipeIndex=0; swipeLiked=[]; voteSelections={};
+  cleanupSwipePointerListeners();
   detachRoomListeners();
   $('#screen').innerHTML=`
     <div class="view wheel-wrap" id="wheelView">
@@ -686,14 +703,17 @@ function generateDemoData(cat){
     dessert:["法式甜點屋","抹茶研究所","雪花冰舖","Waffle Time","甜蜜時光","幸福甜點","糖果屋","可頌工坊"],
   };
   const list=names[cat.id]||names.japanese;
-  return list.map((name,i)=>({
+  return list.map((name,i)=>{
+    const distance=Math.floor(100+Math.random()*1800);
+    return {
     id:'demo_'+i, name, rating:(3.8+Math.random()*1.1).toFixed(1)*1,
     totalRatings:Math.floor(50+Math.random()*800), priceLevel:Math.floor(Math.random()*3)+1,
     address:'附近區域 '+String.fromCharCode(65+i)+'路',
     lat:userLat+(Math.random()-.5)*.02, lng:userLng+(Math.random()-.5)*.02,
-    distance:Math.floor(100+Math.random()*1800), distanceText:Math.floor(100+Math.random()*1800)+'m',
+    distance, distanceText:distance+'m',
     open:Math.random()>.2, photo:null, photos:[], match:Math.floor(70+Math.random()*25),
-  }));
+  };
+  });
 }
 
 // ─── START MODE ───
@@ -749,11 +769,13 @@ function renderSwipeProgress(){
 }
 
 function renderSwipeCard(){
+  cleanupSwipePointerListeners();
   const area=$('#cardArea'); if(!area) return;
   if(swipeIndex>=currentRestaurants.length){ renderSwipeDone(); return; }
   const r=currentRestaurants[swipeIndex];
+  const safeName=esc(r.name), safeAddress=esc(r.address), safeDistance=esc(r.distanceText), safeRating=esc(r.rating), safeTotalRatings=esc(r.totalRatings), safePhoto=escAttr(r.photo);
   const photoHTML=r.photo
-    ?`<img src="${r.photo}" class="card-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="card-visual" style="display:none;background:linear-gradient(135deg,${currentCategory.color}18,${currentCategory.color}06)"><span class="emoji">${currentCategory.emoji}</span></div>`
+    ?`<img src="${safePhoto}" class="card-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="card-visual" style="display:none;background:linear-gradient(135deg,${currentCategory.color}18,${currentCategory.color}06)"><span class="emoji">${currentCategory.emoji}</span></div>`
     :`<div class="card-visual" style="background:linear-gradient(135deg,${currentCategory.color}18,${currentCategory.color}06)"><span class="emoji">${currentCategory.emoji}</span></div>`;
   area.innerHTML=`
     <div class="restaurant-card" id="swipeCard">
@@ -762,36 +784,43 @@ function renderSwipeCard(){
         <div class="match-badge">${r.match}%</div>
       </div>
       <div class="card-info">
-        <h3>${r.name}</h3>
+        <h3>${safeName}</h3>
         <div class="sub">${currentCategory.label} · ${priceText(r.priceLevel)}${r.open!==null?(r.open?' · <span style="color:var(--green)">營業中</span>':' · <span style="color:var(--red)">休息中</span>'):''}</div>
-        <div class="addr">📍 ${r.address}</div>
+        <div class="addr">📍 ${safeAddress}</div>
         <div class="stat-grid">
-          <div class="mini-stat"><div class="label">距離</div><div class="val">${r.distanceText}</div></div>
-          <div class="mini-stat"><div class="label">評分</div><div class="val">⭐ ${r.rating}</div></div>
-          <div class="mini-stat"><div class="label">評價數</div><div class="val">${r.totalRatings}</div></div>
+          <div class="mini-stat"><div class="label">距離</div><div class="val">${safeDistance}</div></div>
+          <div class="mini-stat"><div class="label">評分</div><div class="val">⭐ ${safeRating}</div></div>
+          <div class="mini-stat"><div class="label">評價數</div><div class="val">${safeTotalRatings}</div></div>
         </div>
-        ${r.photos.length>0?`<div style="display:flex;gap:4px;margin-top:8px;overflow-x:auto">${r.photos.map(p=>`<img src="${p}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0">`).join('')}</div>`:''}
+        ${r.photos.length>0?`<div style="display:flex;gap:4px;margin-top:8px;overflow-x:auto">${r.photos.map(p=>`<img src="${escAttr(p)}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0">`).join('')}</div>`:''}
       </div>
     </div>
   `;
   const card=$('#swipeCard');
   let startX=0, dragX=0, dragging=false;
   card.addEventListener('pointerdown',e=>{ startX=e.clientX; dragging=true; card.style.transition='none'; });
-  document.addEventListener('pointermove',e=>{
+  const onPointerMove=e=>{
     if(!dragging) return;
     dragX=e.clientX-startX;
     card.style.transform=`translateX(${dragX}px) rotate(${dragX*.06}deg)`;
     let ex=area.querySelector('.swipe-label'); if(ex) ex.remove();
     if(dragX>30) area.insertAdjacentHTML('afterbegin','<div class="swipe-label like">想吃！</div>');
     else if(dragX<-30) area.insertAdjacentHTML('afterbegin','<div class="swipe-label nope">不要</div>');
-  });
-  document.addEventListener('pointerup',()=>{
+  };
+  const onPointerUp=()=>{
     if(!dragging) return; dragging=false;
+    cleanupSwipePointerListeners();
     let ex=area.querySelector('.swipe-label'); if(ex) ex.remove();
     if(dragX>80) doSwipe('right');
     else if(dragX<-80) doSwipe('left');
     else{ card.style.transition='transform .25s ease'; card.style.transform=''; dragX=0; }
-  });
+  };
+  document.addEventListener('pointermove',onPointerMove);
+  document.addEventListener('pointerup',onPointerUp);
+  swipePointerCleanup=()=>{
+    document.removeEventListener('pointermove',onPointerMove);
+    document.removeEventListener('pointerup',onPointerUp);
+  };
 }
 
 window.doSwipe=function(dir){
@@ -809,6 +838,7 @@ window.doSwipe=function(dir){
 };
 
 async function renderSwipeDone(){
+  cleanupSwipePointerListeners();
   const area=$('#cardArea'); if(!area) return;
   const btns=document.querySelector('.action-buttons'); if(btns) btns.style.display='none';
 
@@ -854,14 +884,13 @@ async function renderSwipeDone(){
 }
 
 function listenForAllSwipesDone(){
-  const memberCount=Object.keys(roomMembers).length||1;
   const unsub=db.collection('rooms').doc(currentRoomCode).collection('swipes')
     .onSnapshot(snap=>{
       const done=[];
       snap.forEach(doc=>{ if(doc.data().done) done.push(doc.data()); });
       const statusEl=$('#swipeWaitStatus');
-      if(statusEl) statusEl.textContent=`等待其他人… (${done.length}/${memberCount} 完成)`;
-      if(done.length>=memberCount){
+      if(statusEl) statusEl.textContent=`等待其他人… (${done.length}/${Object.keys(roomMembers).length||1} 完成)`;
+      if(done.length>=(Object.keys(roomMembers).length||1)){
         unsub();
         const likedSets=done.map(d=>new Set(d.liked));
         const intersection=currentRestaurants.filter(r=>likedSets.every(s=>s.has(r.id)));
@@ -883,7 +912,7 @@ function showSwipeRoomResult(intersection){
           <div style="width:100%;background:${i===0?currentCategory.color+'14':'var(--card)'};border:1.5px solid ${i===0?currentCategory.color+'44':'var(--border)'};border-radius:var(--radiusSm);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
             ${i===0?'<span style="font-size:18px">👑</span>':'<span style="font-size:18px">  </span>'}
             <span style="font-size:22px">${currentCategory.emoji}</span>
-            <div style="flex:1"><p style="color:var(--text);font-size:13px;font-weight:700">${r.name}</p><p style="color:var(--textSec);font-size:11px;margin-top:2px">⭐ ${r.rating} · ${r.distanceText}</p></div>
+            <div style="flex:1"><p style="color:var(--text);font-size:13px;font-weight:700">${esc(r.name)}</p><p style="color:var(--textSec);font-size:11px;margin-top:2px">⭐ ${esc(r.rating)} · ${esc(r.distanceText)}</p></div>
           </div>`).join('')}
         <button onclick="renderWheelScreen()" style="margin-top:8px;padding:10px 28px;border-radius:50px;background:var(--accentSoft);border:1px solid rgba(255,107,53,.4);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">← 回到輪盤</button>
       </div>
@@ -934,8 +963,8 @@ function renderVoteMode(){
     div.innerHTML=`
       <div class="check"></div>
       <span class="emoji">${currentCategory.emoji}</span>
-      <div style="flex:1"><h3>${r.name}</h3><div class="sub">${r.address} · ${priceText(r.priceLevel)}</div></div>
-      <span class="rating">⭐ ${r.rating}</span>
+      <div style="flex:1"><h3>${esc(r.name)}</h3><div class="sub">${esc(r.address)} · ${priceText(r.priceLevel)}</div></div>
+      <span class="rating">⭐ ${esc(r.rating)}</span>
     `;
     div.addEventListener('click',()=>{
       if(div.classList.contains('submitted')) return;
@@ -974,7 +1003,12 @@ window.submitVote=async function(){
       await db.collection('rooms').doc(currentRoomCode).collection('votes').doc(currentUserId).set({
         picks:Object.keys(voteSelections), submitted:true,
       });
-    } catch(e){ console.error(e); }
+    } catch(e){
+      console.error(e);
+      if(btn){ btn.disabled=false; btn.textContent='投票失敗，重試'; }
+      $$('.vote-option').forEach(el=>el.classList.remove('submitted'));
+      return;
+    }
     document.querySelector('.vote-submit').innerHTML=`
       <div style="text-align:center;padding:10px">
         <div style="width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
@@ -996,7 +1030,6 @@ window.submitVote=async function(){
 };
 
 function listenForVoteResults(){
-  const memberCount=Object.keys(roomMembers).length||1;
   const unsub=db.collection('rooms').doc(currentRoomCode).collection('votes')
     .onSnapshot(snap=>{
       const scores={};
@@ -1006,8 +1039,9 @@ function listenForVoteResults(){
         if(d.submitted){ submitted++; (d.picks||[]).forEach(id=>{ scores[id]=(scores[id]||0)+1; }); }
       });
       const statusEl=$('#voteStatus');
-      if(statusEl) statusEl.textContent=`${submitted}/${memberCount} 已投票`;
-      if(submitted>=memberCount){
+      const liveMemberCount=Object.keys(roomMembers).length||1;
+      if(statusEl) statusEl.textContent=`${submitted}/${liveMemberCount} 已投票`;
+      if(submitted>=liveMemberCount){
         unsub();
         const restaurants=currentRestaurants.slice(0,6);
         const results=restaurants.map(r=>({
@@ -1034,15 +1068,15 @@ function showVoteResults(results){
         <div class="result-content">
           ${isWinner?'<span style="font-size:16px">👑</span>':''}
           <span style="font-size:22px">${currentCategory.emoji}</span>
-          <div style="flex:1"><h3 style="color:var(--text);font-size:13px;font-weight:700">${r.name}</h3><p style="color:var(--textTer);font-size:10px;margin-top:2px">${r.voters} 票 · ${r.score} 分</p></div>
+          <div style="flex:1"><h3 style="color:var(--text);font-size:13px;font-weight:700">${esc(r.name)}</h3><p style="color:var(--textTer);font-size:10px;margin-top:2px">${r.voters} 票 · ${r.score} 分</p></div>
           <span class="result-pct" style="color:${isWinner?currentCategory.color:'var(--textTer)'}">${pct}%</span>
         </div>
       </div>
     `;
   }).join('')+`
     <div class="winner-box" style="background:var(--greenSoft);border:1px solid rgba(34,197,94,.3)">
-      <p style="color:var(--green);font-size:14px;font-weight:700">🎉 ${results[0].name} 獲勝！</p>
-      <p style="color:var(--textSec);font-size:11px;margin-top:4px">📍 ${results[0].distanceText} · ⭐ ${results[0].rating}</p>
+      <p style="color:var(--green);font-size:14px;font-weight:700">🎉 ${esc(results[0].name)} 獲勝！</p>
+      <p style="color:var(--textSec);font-size:11px;margin-top:4px">📍 ${esc(results[0].distanceText)} · ⭐ ${results[0].rating}</p>
     </div>
   `;
   document.querySelector('.vote-submit').innerHTML=`<button onclick="renderWheelScreen()" style="width:100%;padding:14px;border-radius:50px;border:1px solid var(--border);background:var(--surfaceUp);color:var(--textSec);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">← 回到輪盤</button>`;
@@ -1088,18 +1122,18 @@ function showAIResult(){
       </div>
       <div class="map-container" style="margin:0 0 12px;height:160px"><div id="aiMap" style="width:100%;height:100%"></div></div>
       <div class="ai-pick-card" style="background:${currentCategory.color}14;border-color:${currentCategory.color}44">
-        ${pick.photo?`<img src="${pick.photo}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:8px">`:`<span class="emoji">${currentCategory.emoji}</span>`}
-        <h2>${pick.name}</h2>
-        <p class="sub">${pick.address}</p>
+        ${pick.photo?`<img src="${escAttr(pick.photo)}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:8px">`:`<span class="emoji">${currentCategory.emoji}</span>`}
+        <h2>${esc(pick.name)}</h2>
+        <p class="sub">${esc(pick.address)}</p>
         <div class="ai-stats">
           <div class="ai-stat"><div class="num" style="color:var(--gold)">⭐ ${pick.rating}</div><div class="label">${pick.totalRatings} 評價</div></div>
           <div class="ai-stat"><div class="num" style="color:var(--green)">${pick.match}%</div><div class="label">匹配度</div></div>
-          <div class="ai-stat"><div class="num" style="color:var(--text)">📍</div><div class="label">${pick.distanceText}</div></div>
+          <div class="ai-stat"><div class="num" style="color:var(--text)">📍</div><div class="label">${esc(pick.distanceText)}</div></div>
         </div>
       </div>
       <div class="ai-reason">
         <h4>🧠 AI 分析理由</h4>
-        <p>在附近的${currentCategory.label}餐廳中，${pick.name}擁有 ${pick.rating} 分的高評價（${pick.totalRatings} 則評論），距離僅 ${pick.distanceText}。${pick.open===true?'目前營業中，':''}綜合評分最適合你們聚餐。</p>
+        <p>在附近的${currentCategory.label}餐廳中，${esc(pick.name)}擁有 ${pick.rating} 分的高評價（${pick.totalRatings} 則評論），距離僅 ${esc(pick.distanceText)}。${pick.open===true?'目前營業中，':''}綜合評分最適合你們聚餐。</p>
       </div>
       <div class="ai-actions">
         <button onclick="renderWheelScreen()" style="background:var(--surfaceUp);border:1px solid var(--border);color:var(--textSec)">🔄 重選</button>

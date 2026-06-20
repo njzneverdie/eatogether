@@ -1,0 +1,13 @@
+{
+  "name": "一起吃 Eatogether",
+  "short_name": "一起吃",
+  "description": "解決選擇障礙，一起決定今天吃什麼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f2f8",
+  "theme_color": "#1a1f36",
+  "icons": [
+    { "src": "/api/icon?size=192", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "/api/icon?size=512", "sizes": "512x512", "type": "image/svg+xml" }
+  ]
+}
