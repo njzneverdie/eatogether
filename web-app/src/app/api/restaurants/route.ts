@@ -3,9 +3,21 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
 
 const CUISINE_TYPE_MAP: Record<string, string> = {
+  火鍋: 'hot_pot_restaurant',
+  燒肉: 'barbecue_restaurant',
+  拉麵: 'ramen_restaurant',
+  壽司: 'sushi_restaurant',
+  炸雞: 'chicken_wings_restaurant',
+  牛排: 'steak_house',
+  炒飯: 'chinese_restaurant',
+  餃子: 'chinese_restaurant',
+  披薩: 'pizza_restaurant',
+  麻辣燙: 'chinese_restaurant',
+  滷肉飯: 'taiwanese_restaurant',
+  串燒: 'japanese_restaurant',
+  // legacy fallbacks
   日式: 'japanese_restaurant',
   韓式: 'korean_restaurant',
-  火鍋: 'hot_pot_restaurant',
   義式: 'italian_restaurant',
   美式: 'american_restaurant',
   中式: 'chinese_restaurant',
