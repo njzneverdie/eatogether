@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
   // For swipe mode: look up restaurant by id
-  if (session.mode === 'swipe' && session.result_place_id) {
+  // Also handle mode=null with result_place_id (legacy sessions before mode was saved)
+  if (session.result_place_id && (session.mode === 'swipe' || session.mode === null)) {
     const { data: restaurant } = await supabase
       .from('session_restaurants')
       .select('id, place_id, name, rating, user_rating_count, price_level, address, photo_ref, phone, website, open_now')
