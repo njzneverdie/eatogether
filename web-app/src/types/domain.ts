@@ -16,6 +16,7 @@ export interface Restaurant {
 
 export interface VoteResult {
   restaurant_id: string
+  place_id?: string | null
   name: string
   score: number
   rank1_count: number

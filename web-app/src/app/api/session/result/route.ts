@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   if (session.mode === 'swipe' && session.result_place_id) {
     const { data: restaurant } = await supabase
       .from('session_restaurants')
-      .select('id, name, rating, price_level, address, photo_ref')
+      .select('id, place_id, name, rating, price_level, address, photo_ref')
       .eq('id', session.result_place_id)
       .single()
     return NextResponse.json({ mode: 'swipe', winner: restaurant })
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const ids = voteResults.map((r: { restaurant_id: string }) => r.restaurant_id)
     const { data: restaurants } = await supabase
       .from('session_restaurants')
-      .select('id, photo_ref, address, rating, price_level')
+      .select('id, place_id, photo_ref, address, rating, price_level')
       .in('id', ids)
     const detailMap = Object.fromEntries((restaurants ?? []).map((r) => [r.id, r]))
     const enriched = voteResults.map((r: { restaurant_id: string }) => ({

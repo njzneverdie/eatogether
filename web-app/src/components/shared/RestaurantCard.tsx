@@ -72,8 +72,10 @@ interface Props {
 
 export default function RestaurantCard({ restaurant, rank, score, showMapLink = false, compact = false }: Props) {
   function openMaps() {
-    const q = restaurant.name + (restaurant.address ? ' ' + restaurant.address : '')
-    window.open(`https://www.google.com/maps/search/${encodeURIComponent(q)}`, '_blank')
+    const url = restaurant.place_id
+      ? `https://www.google.com/maps/place/?q=place_id:${restaurant.place_id}`
+      : `https://www.google.com/maps/search/${encodeURIComponent(restaurant.name + (restaurant.address ? ' ' + restaurant.address : ''))}`
+    window.open(url, '_blank')
   }
 
   if (compact) {

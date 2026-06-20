@@ -66,7 +66,7 @@ export default function ResultPage() {
               <RestaurantCard
                 restaurant={{
                   id: results[0].restaurant_id,
-                  place_id: results[0].restaurant_id,
+                  place_id: results[0].place_id ?? results[0].restaurant_id,
                   name: results[0].name,
                   rating: results[0].rating ?? null,
                   price_level: results[0].price_level ?? null,
