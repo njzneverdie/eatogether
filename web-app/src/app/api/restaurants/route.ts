@@ -30,9 +30,13 @@ interface PlacesResult {
   displayName: { text: string }
   formattedAddress: string
   rating?: number
+  userRatingCount?: number
   priceLevel?: string
   photos?: Array<{ name: string }>
   location: { latitude: number; longitude: number }
+  nationalPhoneNumber?: string
+  websiteUri?: string
+  regularOpeningHours?: { openNow?: boolean; weekdayDescriptions?: string[] }
 }
 
 const PRICE_LEVEL_MAP: Record<string, number> = {
@@ -66,7 +70,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
         'X-Goog-FieldMask':
-          'places.id,places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.photos,places.location',
+          'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.photos,places.location,places.nationalPhoneNumber,places.websiteUri,places.regularOpeningHours',
         'Accept-Language': 'zh-TW',
       },
       body: JSON.stringify({
@@ -99,8 +103,12 @@ export async function POST(req: NextRequest) {
     name: p.displayName.text,
     address: p.formattedAddress,
     rating: p.rating ?? null,
+    user_rating_count: p.userRatingCount ?? null,
     price_level: p.priceLevel ? (PRICE_LEVEL_MAP[p.priceLevel] ?? null) : null,
     photo_ref: p.photos?.[0]?.name ?? null,
+    phone: p.nationalPhoneNumber ?? null,
+    website: p.websiteUri ?? null,
+    open_now: p.regularOpeningHours?.openNow ?? null,
     cuisine_type: cuisineType,
     data: p as unknown as Json,
   }))

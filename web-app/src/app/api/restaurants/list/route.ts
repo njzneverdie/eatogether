@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   if (cuisineType) query = query.eq('cuisine_type', cuisineType)
 
-  const { data, error } = await query
+  const { data, error } = await query.order('created_at', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data ?? [])
 }

@@ -138,6 +138,12 @@ export default function RestaurantCard({ restaurant, rank, score, showMapLink = 
           {restaurant.price_level ? <PriceDots level={restaurant.price_level} /> : null}
         </div>
 
+        {restaurant.open_now != null && (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${restaurant.open_now ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fde8e8] text-[#991b1b]'}`}>
+            {restaurant.open_now ? '營業中' : '已打烊'}
+          </span>
+        )}
+
         {restaurant.address && (
           <div className="flex items-start gap-2">
             <svg className="w-3.5 h-3.5 text-[#8b95c4] mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,10 +154,32 @@ export default function RestaurantCard({ restaurant, rank, score, showMapLink = 
           </div>
         )}
 
+        {restaurant.phone && (
+          <a href={`tel:${restaurant.phone}`} className="flex items-center gap-2 group">
+            <svg className="w-3.5 h-3.5 text-[#8b95c4] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            <span className="text-xs text-[#8b95c4] group-hover:text-[#1a1f36] transition-colors">{restaurant.phone}</span>
+          </a>
+        )}
+
+        {restaurant.website && (
+          <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 group">
+            <svg className="w-3.5 h-3.5 text-[#8b95c4] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <span className="text-xs text-[#8b95c4] group-hover:text-[#1a1f36] transition-colors truncate">{restaurant.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+          </a>
+        )}
+
+        {restaurant.user_rating_count != null && (
+          <p className="text-xs text-[#8b95c4]">{restaurant.user_rating_count.toLocaleString()} 則評論</p>
+        )}
+
         {showMapLink && (
           <button
             onClick={openMaps}
-            className="w-full flex items-center justify-center gap-2 bg-[#f0f2f8] hover:bg-[#e4e7f0] text-[#1a1f36] font-semibold text-sm py-2.5 rounded-xl transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-[#1a1f36] hover:bg-[#252b4a] text-white font-semibold text-sm py-3 rounded-xl transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />

@@ -51,10 +51,16 @@ const MODES: {
 export default function ModePage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
-  const setMode = useSessionStore((s) => s.setMode)
+  const { sessionId, setMode } = useSessionStore()
 
-  function choose(mode: SessionMode, submode?: VoteSubmode) {
+  async function choose(mode: SessionMode, submode?: VoteSubmode) {
     setMode(mode, submode)
+    // Save mode to DB so result API can read it
+    await fetch('/api/session/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, updates: { mode } }),
+    })
     if (mode === 'swipe') router.push(`/session/${params.id}/swipe`)
     else if (mode === 'midpoint') router.push(`/session/${params.id}/midpoint`)
     else router.push(`/session/${params.id}/vote`)
