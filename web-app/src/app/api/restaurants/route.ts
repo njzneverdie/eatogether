@@ -101,6 +101,7 @@ export async function POST(req: NextRequest) {
     rating: p.rating ?? null,
     price_level: p.priceLevel ? (PRICE_LEVEL_MAP[p.priceLevel] ?? null) : null,
     photo_ref: p.photos?.[0]?.name ?? null,
+    cuisine_type: cuisineType,
     data: p as unknown as Json,
   }))
 

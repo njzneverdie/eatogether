@@ -17,13 +17,13 @@ async function getLocation(): Promise<{ lat: number; lng: number }> {
 
 export function useRestaurants(sessionId: string | null, cuisineType: string | null = null) {
   return useQuery({
-    queryKey: ['restaurants', sessionId],
-    enabled: !!sessionId,
+    queryKey: ['restaurants', sessionId, cuisineType],
+    enabled: !!sessionId && !!cuisineType,
     queryFn: async (): Promise<Restaurant[]> => {
-      // Check if already seeded
-      const listRes = await fetch(`/api/restaurants/list?sessionId=${sessionId}`)
+      // Check if already seeded for this cuisine
+      const listRes = await fetch(`/api/restaurants/list?sessionId=${sessionId}&cuisineType=${encodeURIComponent(cuisineType ?? '')}`)
       const existing: Restaurant[] = await listRes.json()
-      if (existing.length > 0) return existing
+      if (Array.isArray(existing) && existing.length > 0) return existing
 
       // Need to seed — get location first
       const { lat, lng } = await getLocation()
