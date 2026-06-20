@@ -2,14 +2,18 @@
 import { useState, useRef } from 'react'
 
 const CUISINES = [
-  { label: '日式', color: '#fca5a5' },
-  { label: '韓式', color: '#fdba74' },
-  { label: '火鍋', color: '#fde68a' },
-  { label: '義式', color: '#bbf7d0' },
-  { label: '美式', color: '#93c5fd' },
-  { label: '中式', color: '#c4b5fd' },
-  { label: '泰式', color: '#f9a8d4' },
-  { label: '台式', color: '#6ee7b7' },
+  { label: '火鍋', color: '#fca5a5' },
+  { label: '燒肉', color: '#fb923c' },
+  { label: '拉麵', color: '#fde68a' },
+  { label: '壽司', color: '#bbf7d0' },
+  { label: '炸雞', color: '#93c5fd' },
+  { label: '牛排', color: '#c4b5fd' },
+  { label: '炒飯', color: '#f9a8d4' },
+  { label: '餃子', color: '#6ee7b7' },
+  { label: '披薩', color: '#fcd34d' },
+  { label: '麻辣燙', color: '#f87171' },
+  { label: '滷肉飯', color: '#86efac' },
+  { label: '串燒', color: '#67e8f9' },
 ]
 
 const SIZE = 280
