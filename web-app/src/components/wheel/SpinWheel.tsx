@@ -54,6 +54,13 @@ export default function SpinWheel({ onResult }: Props) {
     const start = performance.now()
     const fromRot = rotation
 
+    function finish(current: number) {
+      setSpinning(false)
+      const finalDeg = current % 360
+      const idx = Math.floor(((360 - finalDeg) % 360) / (360 / CUISINES.length)) % CUISINES.length
+      onResult(CUISINES[idx].label)
+    }
+
     function animate(now: number) {
       const elapsed = now - start
       const t = Math.min(elapsed / duration, 1)
@@ -64,14 +71,19 @@ export default function SpinWheel({ onResult }: Props) {
       if (t < 1) {
         animRef.current = requestAnimationFrame(animate)
       } else {
-        setSpinning(false)
-        const finalDeg = current % 360
-        const idx = Math.floor(((360 - finalDeg) % 360) / (360 / CUISINES.length)) % CUISINES.length
-        onResult(CUISINES[idx].label)
+        finish(current)
       }
     }
 
     animRef.current = requestAnimationFrame(animate)
+    // Fallback: if rAF is throttled (background tab), force-finish after duration + 1s
+    setTimeout(() => {
+      if (animRef.current !== null) {
+        cancelAnimationFrame(animRef.current)
+        animRef.current = null
+        finish(fromRot + targetDeg)
+      }
+    }, duration + 1000)
   }
 
   return (
