@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
     .select('id, place_id, name, rating, price_level, photo_ref, address, cuisine_type')
     .eq('session_id', sessionId)
 
-  if (cuisineType) query = query.eq('cuisine_type', cuisineType)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (cuisineType) query = (query as any).eq('cuisine_type', cuisineType)
 
   const { data, error } = await query.order('created_at', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
