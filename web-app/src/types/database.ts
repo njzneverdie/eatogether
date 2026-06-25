@@ -97,9 +97,14 @@ export type Database = {
           name: string
           location: unknown | null
           rating: number | null
+          user_rating_count: number | null
           price_level: number | null
           photo_ref: string | null
           address: string | null
+          phone: string | null
+          website: string | null
+          open_now: boolean | null
+          cuisine_type: string | null
           data: Json | null
         }
         Insert: {
@@ -109,9 +114,14 @@ export type Database = {
           name: string
           location?: unknown | null
           rating?: number | null
+          user_rating_count?: number | null
           price_level?: number | null
           photo_ref?: string | null
           address?: string | null
+          phone?: string | null
+          website?: string | null
+          open_now?: boolean | null
+          cuisine_type?: string | null
           data?: Json | null
         }
         Update: {
@@ -121,9 +131,14 @@ export type Database = {
           name?: string
           location?: unknown | null
           rating?: number | null
+          user_rating_count?: number | null
           price_level?: number | null
           photo_ref?: string | null
           address?: string | null
+          phone?: string | null
+          website?: string | null
+          open_now?: boolean | null
+          cuisine_type?: string | null
           data?: Json | null
         }
         Relationships: []
