@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import {
   DndContext,
   closestCenter,
@@ -29,7 +29,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 16 16">
       <path
         d="M8 1l1.8 3.6L14 5.4l-3 2.9.7 4.1L8 10.4l-3.7 2 .7-4.1-3-2.9 4.2-.8z"
-        fill={filled ? '#f97316' : '#d4d8e8'}
+        fill={filled ? '#cda368' : '#e0ccb0'}
       />
     </svg>
   )
@@ -50,12 +50,12 @@ function SortableItem({ restaurant, index }: { restaurant: Restaurant; index: nu
       {...listeners}
       className={`flex items-center gap-3 p-3 rounded-2xl border bg-white cursor-grab active:cursor-grabbing select-none transition-shadow ${
         isDragging ? 'shadow-lg scale-[1.02]' : ''
-      } ${isTop3 ? 'border-[#e4d4a0]' : 'border-[#e4e7f0]'}`}
+      } ${isTop3 ? 'border-[#e4d4a0]' : 'border-[#e8d8c0]'}`}
     >
       {/* Rank badge */}
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-        style={rankColor ? { backgroundColor: rankColor.bg, color: rankColor.text } : { backgroundColor: '#f0f2f8', color: '#8b95c4' }}
+        style={rankColor ? { backgroundColor: rankColor.bg, color: rankColor.text } : { backgroundColor: '#f5ede0', color: '#a08060' }}
       >
         {index + 1}
       </div>
@@ -67,13 +67,13 @@ function SortableItem({ restaurant, index }: { restaurant: Restaurant; index: nu
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-[#1a1f36] text-sm truncate">{restaurant.name}</p>
+        <p className="font-semibold text-[#3d2424] text-sm truncate">{restaurant.name}</p>
         {restaurant.rating && (
           <div className="flex items-center gap-0.5 mt-0.5">
             {Array.from({ length: 5 }, (_, i) => (
               <StarIcon key={i} filled={i < Math.floor(restaurant.rating!)} />
             ))}
-            <span className="text-[10px] text-[#8b95c4] ml-1 tabular-nums">{restaurant.rating.toFixed(1)}</span>
+            <span className="text-[10px] text-[#a08060] ml-1 tabular-nums">{restaurant.rating.toFixed(1)}</span>
           </div>
         )}
       </div>
@@ -82,14 +82,14 @@ function SortableItem({ restaurant, index }: { restaurant: Restaurant; index: nu
       {rankColor && (
         <div className="flex-shrink-0 text-right">
           <p className="text-xs font-bold tabular-nums" style={{ color: rankColor.text }}>+{rankColor.pts}</p>
-          <p className="text-[10px] text-[#8b95c4]">分</p>
+          <p className="text-[10px] text-[#a08060]">分</p>
         </div>
       )}
 
       {/* Drag handle */}
       <div className="flex flex-col gap-0.5 flex-shrink-0 opacity-25 pl-1">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="w-3.5 h-0.5 bg-[#1a1f36] rounded-full" />
+          <div key={i} className="w-3.5 h-0.5 bg-[#3d2424] rounded-full" />
         ))}
       </div>
     </div>
@@ -123,10 +123,10 @@ export default function RankBallot({ restaurants, onChange }: Props) {
         {RANK_COLORS.map((c, i) => (
           <div key={i} className="flex items-center gap-1">
             <div className="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center" style={{ backgroundColor: c.bg, color: c.text }}>{i + 1}</div>
-            <span className="text-[10px] text-[#8b95c4]">+{c.pts}分</span>
+            <span className="text-[10px] text-[#a08060]">+{c.pts}分</span>
           </div>
         ))}
-        <span className="text-[10px] text-[#8b95c4] ml-auto">長按拖曳排序</span>
+        <span className="text-[10px] text-[#a08060] ml-auto">長按拖曳排序</span>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

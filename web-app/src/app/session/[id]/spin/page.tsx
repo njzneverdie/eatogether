@@ -52,28 +52,28 @@ export default function SpinPage() {
   if (!sessionId) return null
 
   return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-1">轉盤決定</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-1">轉盤決定</p>
           <h1 className="text-2xl font-bold text-white">今天吃什麼？</h1>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center px-5 pt-6 pb-10 max-w-sm mx-auto w-full">
-        <div className="bg-white rounded-3xl p-6 border border-[#e4e7f0] w-full flex items-center justify-center mb-5">
+        <div className="bg-white rounded-3xl p-6 border border-[#e8d8c0] w-full flex items-center justify-center mb-5">
           <SpinWheel onResult={handleResult} />
         </div>
 
         {spinResult ? (
           <div className="w-full space-y-4">
-            <div className="bg-white rounded-2xl p-5 border border-[#e4e7f0] text-center">
-              <p className="text-xs text-[#8b95c4] uppercase tracking-widest mb-2">決定了</p>
-              <p className="text-3xl font-bold text-[#1a1f36]">{spinResult}</p>
+            <div className="bg-white rounded-2xl p-5 border border-[#e8d8c0] text-center">
+              <p className="text-xs text-[#a08060] uppercase tracking-widest mb-2">決定了</p>
+              <p className="text-3xl font-bold text-[#3d2424]">{spinResult}</p>
             </div>
             <button
               onClick={handleContinue}
-              className="w-full bg-[#f97316] hover:bg-[#ea6c0a] text-white font-bold py-4 rounded-2xl text-sm transition-colors"
+              className="w-full bg-[#cda368] hover:bg-[#ea6c0a] text-white font-bold py-4 rounded-2xl text-sm transition-colors"
             >
               繼續選餐廳
               <svg className="w-4 h-4 inline ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

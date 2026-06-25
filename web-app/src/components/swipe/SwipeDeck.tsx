@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import SwipeCard from './SwipeCard'
 import type { Restaurant } from '@/types/domain'
@@ -32,13 +32,13 @@ export default function SwipeDeck({ restaurants, onSwipe, onDeckEmpty }: Props) 
     <div className="flex flex-col items-center gap-6 w-full">
       {/* Progress bar */}
       <div className="flex items-center gap-3 w-full max-w-sm">
-        <div className="flex-1 h-1 bg-[#e4e7f0] rounded-full overflow-hidden">
+        <div className="flex-1 h-1 bg-[#e8d8c0] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#1a1f36] rounded-full transition-all duration-500"
+            className="h-full bg-[#3d2424] rounded-full transition-all duration-500"
             style={{ width: `${((restaurants.length - remaining) / restaurants.length) * 100}%` }}
           />
         </div>
-        <span className="text-xs text-[#8b95c4] tabular-nums whitespace-nowrap">{remaining} 間</span>
+        <span className="text-xs text-[#a08060] tabular-nums whitespace-nowrap">{remaining} 間</span>
       </div>
 
       {/* Card stack */}
@@ -66,7 +66,7 @@ export default function SwipeDeck({ restaurants, onSwipe, onDeckEmpty }: Props) 
         <button
           onClick={() => handleSwipe('nope')}
           aria-label="不喜歡"
-          className="w-14 h-14 rounded-full bg-white border border-[#e4e7f0] text-[#ef4444] shadow-sm hover:border-[#ef4444] hover:bg-red-50 transition-all flex items-center justify-center"
+          className="w-14 h-14 rounded-full bg-white border border-[#e8d8c0] text-[#ef4444] shadow-sm hover:border-[#ef4444] hover:bg-red-50 transition-all flex items-center justify-center"
         >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -74,8 +74,8 @@ export default function SwipeDeck({ restaurants, onSwipe, onDeckEmpty }: Props) 
         </button>
 
         <div className="text-center">
-          <p className="text-[10px] text-[#8b95c4] leading-tight">左右滑動</p>
-          <p className="text-[10px] text-[#8b95c4] leading-tight">或按鈕選擇</p>
+          <p className="text-[10px] text-[#a08060] leading-tight">左右滑動</p>
+          <p className="text-[10px] text-[#a08060] leading-tight">或按鈕選擇</p>
         </div>
 
         <button

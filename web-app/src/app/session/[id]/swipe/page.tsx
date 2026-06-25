@@ -44,31 +44,31 @@ export default function SwipePage() {
   if (!sessionId) return null
 
   if (isLoading) return (
-    <main className="min-h-screen bg-[#f0f2f8] flex items-center justify-center">
+    <main className="min-h-screen bg-[#f5ede0] flex items-center justify-center">
       <div className="text-center space-y-3">
-        <div className="w-10 h-10 border-2 border-[#1a1f36] border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-[#8b95c4] text-sm">載入餐廳中…</p>
+        <div className="w-10 h-10 border-2 border-[#3d2424] border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-[#a08060] text-sm">載入餐廳中…</p>
       </div>
     </main>
   )
 
   if (error) return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col items-center justify-center p-6 gap-4">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col items-center justify-center p-6 gap-4">
       <div className="w-16 h-16 bg-[#fde8e8] rounded-full flex items-center justify-center">
         <svg className="w-8 h-8 text-[#ef4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
       </div>
       <div className="text-center">
-        <h2 className="text-lg font-bold text-[#1a1f36]">找不到餐廳</h2>
-        <p className="text-[#8b95c4] text-sm mt-1">{(error as Error).message}</p>
+        <h2 className="text-lg font-bold text-[#3d2424]">找不到餐廳</h2>
+        <p className="text-[#a08060] text-sm mt-1">{(error as Error).message}</p>
       </div>
-      <button onClick={() => window.location.reload()} className="bg-[#1a1f36] text-white font-semibold px-6 py-3 rounded-xl text-sm">重新載入</button>
+      <button onClick={() => window.location.reload()} className="bg-[#3d2424] text-white font-semibold px-6 py-3 rounded-xl text-sm">重新載入</button>
     </main>
   )
 
   if (matchedName) return (
-    <main className="min-h-screen bg-[#1a1f36] flex flex-col items-center justify-center p-6">
+    <main className="min-h-screen bg-[#3d2424] flex flex-col items-center justify-center p-6">
       <div className="text-center space-y-4 max-w-sm w-full">
         <div className="w-20 h-20 bg-[#22c55e]/20 rounded-full flex items-center justify-center mx-auto">
           <svg className="w-10 h-10 text-[#22c55e]" fill="currentColor" viewBox="0 0 24 24">
@@ -76,13 +76,13 @@ export default function SwipePage() {
           </svg>
         </div>
         <div>
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-2">配對成功</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-2">配對成功</p>
           <h1 className="text-2xl font-bold text-white">{matchedName}</h1>
-          <p className="text-[#8b95c4] text-sm mt-2">大家都喜歡這間</p>
+          <p className="text-[#a08060] text-sm mt-2">大家都喜歡這間</p>
         </div>
         <button
           onClick={() => router.push(`/session/${params.id}/result`)}
-          className="w-full bg-[#f97316] hover:bg-[#ea6c0a] text-white font-bold py-4 rounded-2xl text-sm transition-colors mt-4"
+          className="w-full bg-[#cda368] hover:bg-[#ea6c0a] text-white font-bold py-4 rounded-2xl text-sm transition-colors mt-4"
         >
           查看餐廳詳情
         </button>
@@ -91,19 +91,19 @@ export default function SwipePage() {
   )
 
   if (deckEmpty) return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col items-center justify-center p-6 gap-5">
-      <div className="w-16 h-16 bg-[#e4e7f0] rounded-full flex items-center justify-center">
-        <svg className="w-8 h-8 text-[#8b95c4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col items-center justify-center p-6 gap-5">
+      <div className="w-16 h-16 bg-[#e8d8c0] rounded-full flex items-center justify-center">
+        <svg className="w-8 h-8 text-[#a08060]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <div className="text-center">
-        <h2 className="text-xl font-bold text-[#1a1f36]">沒有配對成功</h2>
-        <p className="text-[#8b95c4] text-sm mt-1">大家的口味不同，換個模式試試？</p>
+        <h2 className="text-xl font-bold text-[#3d2424]">沒有配對成功</h2>
+        <p className="text-[#a08060] text-sm mt-1">大家的口味不同，換個模式試試？</p>
       </div>
       <button
         onClick={() => router.push(`/session/${params.id}/mode`)}
-        className="bg-white border border-[#e4e7f0] text-[#1a1f36] font-semibold py-3 px-6 rounded-2xl text-sm hover:border-[#1a1f36] transition-colors"
+        className="bg-white border border-[#e8d8c0] text-[#3d2424] font-semibold py-3 px-6 rounded-2xl text-sm hover:border-[#3d2424] transition-colors"
       >
         回模式選擇
       </button>
@@ -111,12 +111,12 @@ export default function SwipePage() {
   )
 
   return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-1">交友軟體模式</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-1">交友軟體模式</p>
           <h1 className="text-xl font-bold text-white">喜歡就往右滑</h1>
-          <p className="text-[#8b95c4] text-sm mt-1">全員喜歡才算配對</p>
+          <p className="text-[#a08060] text-sm mt-1">全員喜歡才算配對</p>
         </div>
       </div>
 

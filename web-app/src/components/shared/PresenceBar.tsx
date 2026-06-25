@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import type { ParticipantPresence } from '@/types/domain'
 
 interface Props {
@@ -17,13 +17,13 @@ export default function PresenceBar({ presence }: Props) {
       {presence.map((p, i) => (
         <div
           key={p.participant_id ?? i}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e4e7f0]"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e8d8c0]"
           style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
         >
-          <div className="w-6 h-6 rounded-full bg-[#1a1f36] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          <div className="w-6 h-6 rounded-full bg-[#3d2424] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
             {(p.display_name ?? '?')[0].toUpperCase()}
           </div>
-          <span className="text-sm font-medium text-[#1a1f36]">{p.display_name}</span>
+          <span className="text-sm font-medium text-[#3d2424]">{p.display_name}</span>
         </div>
       ))}
     </div>

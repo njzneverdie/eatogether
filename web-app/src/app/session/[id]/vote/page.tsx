@@ -87,46 +87,46 @@ export default function VotePage() {
   if (!sessionId) return null
 
   if (isLoading) return (
-    <main className="min-h-screen bg-[#f0f2f8] flex items-center justify-center">
+    <main className="min-h-screen bg-[#f5ede0] flex items-center justify-center">
       <div className="text-center space-y-3">
-        <div className="w-10 h-10 border-2 border-[#1a1f36] border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-[#8b95c4] text-sm">載入餐廳中…</p>
+        <div className="w-10 h-10 border-2 border-[#3d2424] border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-[#a08060] text-sm">載入餐廳中…</p>
       </div>
     </main>
   )
 
   if (error) return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col items-center justify-center p-6 gap-4">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col items-center justify-center p-6 gap-4">
       <div className="w-16 h-16 bg-[#fde8e8] rounded-full flex items-center justify-center">
         <svg className="w-8 h-8 text-[#ef4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
       </div>
       <div className="text-center">
-        <h2 className="text-lg font-bold text-[#1a1f36]">找不到餐廳</h2>
-        <p className="text-[#8b95c4] text-sm mt-1">{(error as Error).message}</p>
+        <h2 className="text-lg font-bold text-[#3d2424]">找不到餐廳</h2>
+        <p className="text-[#a08060] text-sm mt-1">{(error as Error).message}</p>
       </div>
-      <button onClick={() => window.location.reload()} className="bg-[#1a1f36] text-white font-semibold px-6 py-3 rounded-xl text-sm">重新載入</button>
+      <button onClick={() => window.location.reload()} className="bg-[#3d2424] text-white font-semibold px-6 py-3 rounded-xl text-sm">重新載入</button>
     </main>
   )
 
   if (voteSubmode === 'online' && submitted) return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col items-center justify-center p-6 gap-5">
-      <div className="bg-white rounded-3xl p-8 border border-[#e4e7f0] text-center max-w-sm w-full space-y-4">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col items-center justify-center p-6 gap-5">
+      <div className="bg-white rounded-3xl p-8 border border-[#e8d8c0] text-center max-w-sm w-full space-y-4">
         <div className="w-16 h-16 bg-[#e8f5e9] rounded-full flex items-center justify-center mx-auto">
           <svg className="w-8 h-8 text-[#22c55e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-[#1a1f36]">投票完成</h2>
-          <p className="text-[#8b95c4] text-sm mt-1">等待其他人投票中</p>
+          <h2 className="text-xl font-bold text-[#3d2424]">投票完成</h2>
+          <p className="text-[#a08060] text-sm mt-1">等待其他人投票中</p>
         </div>
-        <div className="bg-[#f0f2f8] rounded-xl py-3 px-4 flex items-center justify-center gap-2">
-          <span className="text-2xl font-bold text-[#1a1f36] tabular-nums">{votedCount}</span>
-          <span className="text-[#8b95c4]">/</span>
-          <span className="text-2xl font-bold text-[#1a1f36] tabular-nums">{totalCount}</span>
-          <span className="text-[#8b95c4] text-sm">人</span>
+        <div className="bg-[#f5ede0] rounded-xl py-3 px-4 flex items-center justify-center gap-2">
+          <span className="text-2xl font-bold text-[#3d2424] tabular-nums">{votedCount}</span>
+          <span className="text-[#a08060]">/</span>
+          <span className="text-2xl font-bold text-[#3d2424] tabular-nums">{totalCount}</span>
+          <span className="text-[#a08060] text-sm">人</span>
         </div>
       </div>
     </main>
@@ -135,36 +135,36 @@ export default function VotePage() {
   const isPassMode = voteSubmode === 'pass'
 
   return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
           {isPassMode && (
             <div className="flex items-center justify-center gap-1.5 mb-2">
               {Array.from({ length: totalCount }, (_, i) => (
                 <div
                   key={i}
-                  className={`h-1.5 rounded-full transition-all ${i <= seatIndex ? 'bg-[#f97316]' : 'bg-white/20'}`}
+                  className={`h-1.5 rounded-full transition-all ${i <= seatIndex ? 'bg-[#cda368]' : 'bg-white/20'}`}
                   style={{ width: `${Math.min(48 / totalCount, 20)}px` }}
                 />
               ))}
             </div>
           )}
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-1">
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-1">
             {isPassMode ? `第 ${seatIndex + 1} / ${totalCount} 位` : '線上投票'}
           </p>
           <h1 className="text-xl font-bold text-white">排出你的前三名</h1>
-          <p className="text-[#8b95c4] text-xs mt-1">第 1 名 +5 分 · 第 2 名 +3 分 · 第 3 名 +1 分</p>
+          <p className="text-[#a08060] text-xs mt-1">第 1 名 +5 分 · 第 2 名 +3 分 · 第 3 名 +1 分</p>
         </div>
       </div>
 
       <div className="flex-1 px-5 pt-6 pb-10 max-w-sm mx-auto w-full space-y-4">
-        <div className="bg-white rounded-2xl border border-[#e4e7f0] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#e8d8c0] overflow-hidden">
           <RankBallot restaurants={ordered} onChange={setOrdered} />
         </div>
 
         <button
           onClick={isPassMode ? handlePassSubmit : handleOnlineSubmit}
-          className="w-full bg-[#1a1f36] hover:bg-[#252b4a] text-white font-bold py-4 rounded-2xl text-sm transition-colors"
+          className="w-full bg-[#3d2424] hover:bg-[#4d3030] text-white font-bold py-4 rounded-2xl text-sm transition-colors"
         >
           {isPassMode
             ? seatIndex + 1 < totalCount ? '確認，傳給下一位' : '確認，看結果'

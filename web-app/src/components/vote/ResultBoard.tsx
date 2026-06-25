@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import RestaurantPhoto from '@/components/shared/RestaurantPhoto'
 import type { VoteResult } from '@/types/domain'
 
@@ -21,13 +21,13 @@ export default function ResultBoard({ results }: Props) {
           <div
             key={r.restaurant_id}
             className={`flex items-center gap-3 rounded-2xl border p-3 bg-white ${
-              i === 0 ? 'border-[#e4d4a0]' : 'border-[#e4e7f0]'
+              i === 0 ? 'border-[#e4d4a0]' : 'border-[#e8d8c0]'
             }`}
           >
             {/* Rank badge */}
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={rankColor ? { backgroundColor: rankColor.bg, color: rankColor.text } : { backgroundColor: '#f0f2f8', color: '#8b95c4' }}
+              style={rankColor ? { backgroundColor: rankColor.bg, color: rankColor.text } : { backgroundColor: '#f5ede0', color: '#a08060' }}
             >
               {i + 1}
             </div>
@@ -39,8 +39,8 @@ export default function ResultBoard({ results }: Props) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-[#1a1f36] text-sm truncate">{r.name}</p>
-              <p className="text-xs text-[#8b95c4] mt-0.5">
+              <p className="font-bold text-[#3d2424] text-sm truncate">{r.name}</p>
+              <p className="text-xs text-[#a08060] mt-0.5">
                 {r.rank1_count > 0 && (
                   <span className="mr-1.5 font-semibold text-[#F5C842]">{r.rank1_count}票第一</span>
                 )}
@@ -51,10 +51,10 @@ export default function ResultBoard({ results }: Props) {
             {/* Score */}
             <div
               className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
-              style={i === 0 ? { backgroundColor: '#FFF8E1' } : { backgroundColor: '#f0f2f8' }}
+              style={i === 0 ? { backgroundColor: '#FFF8E1' } : { backgroundColor: '#f5ede0' }}
             >
-              <p className="text-sm font-bold tabular-nums" style={{ color: i === 0 ? '#F5A623' : '#6b7280' }}>{r.score}</p>
-              <p className="text-[9px] text-[#8b95c4]">分</p>
+              <p className="text-sm font-bold tabular-nums" style={{ color: i === 0 ? '#F5A623' : '#8b6b4e' }}>{r.score}</p>
+              <p className="text-[9px] text-[#a08060]">分</p>
             </div>
           </div>
         )

@@ -35,24 +35,24 @@ export default function LobbyPage() {
   if (!sessionId) return null
 
   return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-2">房間代碼</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-2">房間代碼</p>
           <h1 className="text-4xl font-bold text-white font-mono tracking-[0.3em]">{roomCode}</h1>
-          <p className="text-[#8b95c4] text-sm mt-2">分享給朋友加入</p>
+          <p className="text-[#a08060] text-sm mt-2">分享給朋友加入</p>
         </div>
       </div>
 
       <div className="flex-1 px-5 pt-6 pb-10 max-w-sm mx-auto w-full space-y-4">
         {roomCode && (
-          <div className="bg-white rounded-2xl p-4 border border-[#e4e7f0]">
+          <div className="bg-white rounded-2xl p-4 border border-[#e8d8c0]">
             <ShareRoom roomCode={roomCode} sessionId={params.id} />
           </div>
         )}
 
-        <div className="bg-white rounded-2xl p-5 border border-[#e4e7f0]">
-          <p className="text-xs font-semibold text-[#1a1f36] uppercase tracking-wider mb-3">
+        <div className="bg-white rounded-2xl p-5 border border-[#e8d8c0]">
+          <p className="text-xs font-semibold text-[#3d2424] uppercase tracking-wider mb-3">
             已加入 · {presence.length} 人
           </p>
           {presence.length > 0 ? (
@@ -74,7 +74,7 @@ export default function LobbyPage() {
 
         <button
           onClick={handleStart}
-          className="w-full bg-[#1a1f36] hover:bg-[#252b4a] text-white font-bold py-4 rounded-2xl text-base transition-colors"
+          className="w-full bg-[#3d2424] hover:bg-[#4d3030] text-white font-bold py-4 rounded-2xl text-base transition-colors"
         >
           開始
         </button>

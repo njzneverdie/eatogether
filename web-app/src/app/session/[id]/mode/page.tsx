@@ -67,21 +67,21 @@ export default function ModePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-1">第二步</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-1">第二步</p>
           <h1 className="text-2xl font-bold text-white">選擇決策模式</h1>
         </div>
       </div>
 
       <div className="flex-1 px-5 pt-6 pb-10 max-w-sm mx-auto w-full space-y-3">
-        <p className="text-xs text-[#8b95c4] uppercase tracking-wider font-semibold mb-1">選一個適合的方式</p>
+        <p className="text-xs text-[#a08060] uppercase tracking-wider font-semibold mb-1">選一個適合的方式</p>
         {MODES.map((m) => (
           <button
             key={`${m.id}-${m.submode}`}
             onClick={() => choose(m.id, m.submode)}
-            className="w-full bg-white rounded-2xl border border-[#e4e7f0] p-4 flex items-center gap-4 text-left hover:border-[#1a1f36] hover:shadow-sm transition-all active:scale-[0.98]"
+            className="w-full bg-white rounded-2xl border border-[#e8d8c0] p-4 flex items-center gap-4 text-left hover:border-[#3d2424] hover:shadow-sm transition-all active:scale-[0.98]"
           >
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -92,8 +92,8 @@ export default function ModePage() {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-[#1a1f36] text-sm">{m.title}</p>
-              <p className="text-xs text-[#8b95c4] mt-0.5 leading-snug">{m.desc}</p>
+              <p className="font-bold text-[#3d2424] text-sm">{m.title}</p>
+              <p className="text-xs text-[#a08060] mt-0.5 leading-snug">{m.desc}</p>
             </div>
             <svg className="w-4 h-4 text-[#c8cfe8] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

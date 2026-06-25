@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useRef } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
@@ -12,7 +12,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 16 16" fill="none">
       <path
         d="M8 1l1.8 3.6L14 5.4l-3 2.9.7 4.1L8 10.4l-3.7 2 .7-4.1-3-2.9 4.2-.8z"
-        fill={filled ? '#f97316' : 'rgba(255,255,255,0.25)'}
+        fill={filled ? '#cda368' : 'rgba(255,255,255,0.25)'}
       />
     </svg>
   )
@@ -107,15 +107,15 @@ export default function SwipeCard({ restaurant, onSwipe, isTop }: Props) {
 
         {/* Info panel */}
         <div className="p-4 space-y-2">
-          <h2 className="text-xl font-bold text-[#1a1f36] leading-tight">{restaurant.name}</h2>
+          <h2 className="text-xl font-bold text-[#3d2424] leading-tight">{restaurant.name}</h2>
 
           {restaurant.address && (
             <div className="flex items-start gap-1.5">
-              <svg className="w-3.5 h-3.5 text-[#8b95c4] mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5 text-[#a08060] mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <p className="text-xs text-[#8b95c4] line-clamp-2 leading-snug">{restaurant.address}</p>
+              <p className="text-xs text-[#a08060] line-clamp-2 leading-snug">{restaurant.address}</p>
             </div>
           )}
         </div>

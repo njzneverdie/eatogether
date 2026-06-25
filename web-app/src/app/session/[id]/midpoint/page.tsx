@@ -101,24 +101,24 @@ export default function MidpointPage() {
   if (!sessionId) return null
 
   if (phase === 'collecting') return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-1">中點模式</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-1">中點模式</p>
           <h1 className="text-2xl font-bold text-white">分享你的位置</h1>
-          <p className="text-[#8b95c4] text-sm mt-1">找你們的幾何中點附近的餐廳</p>
+          <p className="text-[#a08060] text-sm mt-1">找你們的幾何中點附近的餐廳</p>
         </div>
       </div>
 
       <div className="flex-1 px-5 pt-6 pb-10 max-w-sm mx-auto w-full space-y-4">
-        <div className="bg-white rounded-2xl p-5 border border-[#e4e7f0] space-y-4">
+        <div className="bg-white rounded-2xl p-5 border border-[#e8d8c0] space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[#6b7280]">已分享位置</span>
-            <span className="text-sm font-bold text-[#1a1f36] tabular-nums">{readyCount} / {totalCount} 人</span>
+            <span className="text-sm text-[#8b6b4e]">已分享位置</span>
+            <span className="text-sm font-bold text-[#3d2424] tabular-nums">{readyCount} / {totalCount} 人</span>
           </div>
-          <div className="h-1.5 bg-[#e4e7f0] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[#e8d8c0] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#1a1f36] rounded-full transition-all"
+              className="h-full bg-[#3d2424] rounded-full transition-all"
               style={{ width: `${totalCount > 0 ? (readyCount / totalCount) * 100 : 0}%` }}
             />
           </div>
@@ -127,7 +127,7 @@ export default function MidpointPage() {
             <button
               onClick={() => geo.request()}
               disabled={geo.loading}
-              className="w-full bg-[#1a1f36] hover:bg-[#252b4a] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[#3d2424] hover:bg-[#4d3030] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -149,7 +149,7 @@ export default function MidpointPage() {
         <button
           onClick={handleComputeMidpoint}
           disabled={readyCount === 0 && !locationSent}
-          className="w-full bg-[#f97316] hover:bg-[#ea6c0a] disabled:opacity-40 text-white font-bold py-4 rounded-2xl text-sm transition-colors"
+          className="w-full bg-[#cda368] hover:bg-[#ea6c0a] disabled:opacity-40 text-white font-bold py-4 rounded-2xl text-sm transition-colors"
         >
           計算中點，搜尋餐廳
         </button>
@@ -158,17 +158,17 @@ export default function MidpointPage() {
   )
 
   return (
-    <main className="min-h-screen bg-[#f0f2f8] flex flex-col">
-      <div className="bg-[#1a1f36] px-6 pt-12 pb-8 rounded-b-[2rem]">
+    <main className="min-h-screen bg-[#f5ede0] flex flex-col">
+      <div className="bg-[#3d2424] px-6 pt-12 pb-8 rounded-b-[2rem]">
         <div className="max-w-sm mx-auto text-center">
-          <p className="text-[#8b95c4] text-xs uppercase tracking-widest mb-1">你們的中點附近</p>
+          <p className="text-[#a08060] text-xs uppercase tracking-widest mb-1">你們的中點附近</p>
           <h1 className="text-xl font-bold text-white">選擇一間餐廳</h1>
         </div>
       </div>
 
       <div className="flex-1 px-5 pt-6 pb-10 max-w-sm mx-auto w-full space-y-4">
         {midpoint && (
-          <div className="rounded-2xl overflow-hidden border border-[#e4e7f0]">
+          <div className="rounded-2xl overflow-hidden border border-[#e8d8c0]">
             <MidpointMap midpoint={midpoint} restaurants={restaurants} onSelect={setSelected} selected={selected} />
           </div>
         )}
@@ -178,7 +178,7 @@ export default function MidpointPage() {
             <button
               key={r.id}
               onClick={() => setSelected(r)}
-              className={`w-full text-left transition-all ${selected?.id === r.id ? 'ring-2 ring-[#1a1f36] rounded-2xl' : ''}`}
+              className={`w-full text-left transition-all ${selected?.id === r.id ? 'ring-2 ring-[#3d2424] rounded-2xl' : ''}`}
             >
               <RestaurantCard restaurant={r} compact />
             </button>
@@ -188,7 +188,7 @@ export default function MidpointPage() {
         <button
           onClick={handleConfirm}
           disabled={!selected}
-          className="w-full bg-[#1a1f36] hover:bg-[#252b4a] disabled:opacity-40 text-white font-bold py-4 rounded-2xl text-sm transition-colors"
+          className="w-full bg-[#3d2424] hover:bg-[#4d3030] disabled:opacity-40 text-white font-bold py-4 rounded-2xl text-sm transition-colors"
         >
           {selected ? `就選「${selected.name}」` : '請先選擇一間餐廳'}
         </button>

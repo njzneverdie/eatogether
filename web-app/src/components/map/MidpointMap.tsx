@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps'
 import type { Restaurant } from '@/types/domain'
 
@@ -24,7 +24,7 @@ export default function MidpointMap({ midpoint, restaurants, onSelect, selected 
       >
         {/* Midpoint marker */}
         <AdvancedMarker position={midpoint} title="大家的中點">
-          <div className="bg-[#1a1f36] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+          <div className="bg-[#3d2424] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
@@ -42,9 +42,9 @@ export default function MidpointMap({ midpoint, restaurants, onSelect, selected 
             onClick={() => onSelect(r)}
           >
             <Pin
-              background={selected?.id === r.id ? '#f97316' : '#fff'}
+              background={selected?.id === r.id ? '#cda368' : '#fff'}
               borderColor={selected?.id === r.id ? '#ea580c' : '#d1d5db'}
-              glyphColor={selected?.id === r.id ? '#fff' : '#6b7280'}
+              glyphColor={selected?.id === r.id ? '#fff' : '#8b6b4e'}
             />
           </AdvancedMarker>
         ))}

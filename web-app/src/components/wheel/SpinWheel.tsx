@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useRef } from 'react'
 
 const CUISINES = [
@@ -92,7 +92,7 @@ export default function SpinWheel({ onResult }: Props) {
         {/* Pointer arrow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10">
           <svg width="18" height="20" viewBox="0 0 18 20">
-            <polygon points="9,20 0,0 18,0" fill="#1a1f36" />
+            <polygon points="9,20 0,0 18,0" fill="#3d2424" />
           </svg>
         </div>
 
@@ -117,7 +117,7 @@ export default function SpinWheel({ onResult }: Props) {
                     dominantBaseline="middle"
                     fontSize={13}
                     fontWeight="700"
-                    fill="#1a1f36"
+                    fill="#3d2424"
                     letterSpacing="0.5"
                   >
                     {c.label}
@@ -127,7 +127,7 @@ export default function SpinWheel({ onResult }: Props) {
             })}
           </g>
           {/* Center hub */}
-          <circle cx={CX} cy={CY} r={18} fill="#1a1f36" />
+          <circle cx={CX} cy={CY} r={18} fill="#3d2424" />
           <circle cx={CX} cy={CY} r={12} fill="white" opacity="0.15" />
         </svg>
       </div>
@@ -135,7 +135,7 @@ export default function SpinWheel({ onResult }: Props) {
       <button
         onClick={spin}
         disabled={spinning}
-        className="bg-[#1a1f36] hover:bg-[#252b4a] disabled:opacity-50 text-white font-bold px-10 py-3 rounded-2xl text-sm transition-colors tracking-wide"
+        className="bg-[#3d2424] hover:bg-[#4d3030] disabled:opacity-50 text-white font-bold px-10 py-3 rounded-2xl text-sm transition-colors tracking-wide"
       >
         {spinning ? '旋轉中…' : '轉動'}
       </button>
